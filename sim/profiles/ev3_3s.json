@@ -1,0 +1,20 @@
+{
+  "_note": "EV3 브릭(Pybricks v4 네이티브) + 컬러 3(S1·S2 페어, S3 전방 센티넬) + 자이로센서 S4 + 모터 4(스키드). Phase 0 실측 전 임시값이 많음 — _provisional 참고",
+  "_provisional": ["dc_table", "gear_ratio", "motor_tau_s", "motor_tau_dn_s", "sensor_white", "sensor_black", "sensor_lag_ms", "sensor_hz", "call_cost_us", "gyro", "w_eff_scale", "wheel_diameter_mm", "axle_track_mm"],
+  "extends": "spike_4s",
+  "platform": "ev3",
+  "pybricks_api": "v4",
+  "sensor_ports": ["S1", "S2", "S3"],
+  "sensor_pos_mm": [[90.0, 25.0], [90.0, -25.0], [90.0, 0.0]],
+  "_layout_note": "일렬(권장, 2026-10-17 시뮬 1등). 페어+센티넬은 [[90,12.5],[90,-12.5],[130,0]]",
+  "sensor_white": [26, 25, 28],
+  "sensor_black": [2, 2, 2],
+  "motors": {"A": ["L", 1], "B": ["L", -1], "C": ["R", -1], "D": ["R", 1]},
+  "dc_table": [[0, 0], [10, 0], [100, 1000.0]],
+  "_dc_note": "EV3 Large 모터 사양 160~170rpm(≈1000deg/s) 기준 임시값. 실측으로 교체",
+  "gear_ratio": 1.0,
+  "call_cost_us": {"color_read": 50, "gyro_read": 50, "motor_dc": 20},
+  "gyro": {"source": "sensor", "port": "S4", "mount": 1, "lag_ms": 5.0,
+           "noise_dps": 1.0, "bias_dps": 0.0, "max_dps": 440, "update_hz": 1000.0},
+  "w_eff_scale": 1.0
+}

@@ -1,0 +1,201 @@
+<title>MRC 라인트레이싱 시뮬레이터 재생</title>
+<style>
+  :root{
+    --bg:#15171c; --panel:#1d2027; --edge:#2b2f3a;
+    --text:#e9ebf2; --muted:#8b91a3; --accent:#4da3ff;
+    --bad:#ff6b5e; --good:#57c785; --warn:#f2b544;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",sans-serif;}
+  .wrap{max-width:1060px;margin:0 auto;padding:20px 16px 40px;}
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:6px;}
+  h1{font-size:19px;margin:0;letter-spacing:-.2px;}
+  .sub{color:var(--muted);font-size:12.5px;}
+  .runs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px;}
+  .runbtn{background:var(--panel);border:1px solid var(--edge);color:var(--text);
+    border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;text-align:left;line-height:1.45;}
+  .runbtn small{display:block;color:var(--muted);font-size:11.5px;}
+  .runbtn.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+  .runbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .stage{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:10px;}
+  canvas{width:100%;height:auto;display:block;border-radius:6px;background:#f2f2ef;}
+  .bar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  button.ctl{background:var(--accent);border:0;color:#0b1020;font-weight:700;
+    border-radius:7px;padding:7px 16px;font-size:14px;cursor:pointer;min-width:74px;}
+  button.ctl:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  select{background:var(--panel);color:var(--text);border:1px solid var(--edge);
+    border-radius:6px;padding:6px 8px;font-size:13px;}
+  input[type=range]{flex:1;min-width:180px;accent-color:var(--accent);}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:8px;margin-top:10px;}
+  .stat{background:var(--bg);border:1px solid var(--edge);border-radius:8px;padding:8px 10px;}
+  .stat .k{color:var(--muted);font-size:11px;letter-spacing:.4px;}
+  .stat .v{font-size:16px;font-variant-numeric:tabular-nums;margin-top:2px;}
+  .vred{color:var(--bad)} .vgreen{color:var(--good)}
+  .legend{color:var(--muted);font-size:12px;margin-top:12px;line-height:1.7;}
+  .legend b{color:var(--text);font-weight:600;}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;}
+  @media (prefers-reduced-motion: reduce){ /* 자동재생 없음: 기본 정지 */ }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>MRC 라인트레이싱 시뮬레이터 재생</h1>
+    <span class="sub">실측 파라미터(모터 1626°/s·τ115ms, 센서 1457Hz, 간격 25mm) 기반 · 10ms 프레임</span>
+  </header>
+  <div class="runs" id="runs"></div>
+  <div class="stage">
+    <canvas id="cv" width="1560" height="1100"></canvas>
+    <div class="bar">
+      <button class="ctl" id="play">재생</button>
+      <select id="speed" aria-label="재생 속도">
+        <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+        <option value="1" selected>1× (실시간)</option><option value="2">2×</option>
+      </select>
+      <input type="range" id="seek" min="0" max="100" value="0" aria-label="타임라인">
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">시간</div><div class="v" id="s_t">0.00 s</div></div>
+      <div class="stat"><div class="k">속도</div><div class="v" id="s_v">0 mm/s</div></div>
+      <div class="stat"><div class="k">모터 듀티 L / R</div><div class="v" id="s_d">0 / 0</div></div>
+      <div class="stat"><div class="k">센서 (좌→우)</div><div class="v" id="s_s">– – – –</div></div>
+      <div class="stat"><div class="k">결과</div><div class="v" id="s_r">–</div></div>
+    </div>
+    <div class="legend">
+      <b>보는 법</b> — 파란 사각형이 로봇(바퀴간격 72mm), 앞의 점 4개가 컬러센서예요.
+      센서 점이 <span class="dot" style="background:#111"></span> 어두우면 라인 위,
+      <span class="dot" style="background:#eee;border:1px solid #999"></span> 밝으면 흰 바닥.
+      파란 궤적은 지나온 길, <span style="color:var(--bad)">×</span>는 이탈 지점.
+      시뮬은 이 센서 4개의 값만 컨트롤러에 주고, 컨트롤러가 낸 듀티로
+      모터 지연(τ115ms)을 거쳐 로봇을 움직여요 — 실기와 같은 정보, 같은 코드로요.
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const T = DATA.track, G = DATA.geom;
+const img = new Image();
+img.src = 'data:image/png;base64,' + T.png;
+
+let run = DATA.runs[0], fi = 0, playing = false, speed = 1, lastTs = null, acc = 0;
+
+const sx = mm => (mm - T.x0) / T.w_mm * cv.width;
+const sy = mm => (T.y0 + T.h_mm - mm) / T.h_mm * cv.height;
+const S  = cv.width / T.w_mm;   // mm → px
+
+function sensorPos(f, i){
+  const lat = (1.5 - i) * G.spacing, h = f[3];
+  return [f[1] + Math.cos(h)*G.forward - Math.sin(h)*lat,
+          f[2] + Math.sin(h)*G.forward + Math.cos(h)*lat];
+}
+
+function draw(){
+  const f = run.frames[fi];
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if (img.complete) ctx.drawImage(img, 0, 0, cv.width, cv.height);
+
+  // 궤적
+  ctx.strokeStyle = 'rgba(45,130,235,0.85)'; ctx.lineWidth = 2.2; ctx.beginPath();
+  for (let i = 0; i <= fi; i++){
+    const p = run.frames[i];
+    i ? ctx.lineTo(sx(p[1]), sy(p[2])) : ctx.moveTo(sx(p[1]), sy(p[2]));
+  }
+  ctx.stroke();
+
+  // 이탈 지점
+  if (run.result.startsWith('이탈')){
+    const e = run.frames[run.frames.length-1];
+    ctx.strokeStyle = '#ff5544'; ctx.lineWidth = 3;
+    const ex = sx(e[1]), ey = sy(e[2]);
+    ctx.beginPath(); ctx.moveTo(ex-9,ey-9); ctx.lineTo(ex+9,ey+9);
+    ctx.moveTo(ex+9,ey-9); ctx.lineTo(ex-9,ey+9); ctx.stroke();
+  }
+
+  // 로봇 본체
+  const px = sx(f[1]), py = sy(f[2]);
+  ctx.save(); ctx.translate(px, py); ctx.rotate(-f[3]);
+  const W = G.axle*S, L = 105*S;
+  ctx.fillStyle = 'rgba(45,130,235,0.92)';
+  ctx.fillRect(-L*0.55, -W/2, L, W);
+  ctx.fillStyle = '#123';
+  ctx.fillRect(-L*0.5, -W/2 - 7*S, 42*S, 7*S);      // 바퀴
+  ctx.fillRect(-L*0.5,  W/2,       42*S, 7*S);
+  ctx.fillStyle = '#fff';                            // 진행방향 표시
+  ctx.beginPath(); ctx.moveTo(L*0.45,0); ctx.lineTo(L*0.2,-W*0.28);
+  ctx.lineTo(L*0.2, W*0.28); ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // 센서 4개
+  for (let i = 0; i < 4; i++){
+    const [wx, wy] = sensorPos(f, i);
+    const n = Math.max(0, Math.min(1, (f[6+i]-G.black[i])/(G.white[i]-G.black[i])));
+    const c = Math.round(20 + n*225);
+    ctx.beginPath(); ctx.arc(sx(wx), sy(wy), 5.5, 0, 7);
+    ctx.fillStyle = `rgb(${c},${c},${c})`; ctx.fill();
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = n < 0.5 ? '#ff9d2e' : '#556';   // 라인 밟으면 주황 링
+    ctx.stroke();
+  }
+
+  // 읽기값
+  document.getElementById('s_t').textContent = f[0].toFixed(2) + ' s';
+  let v = 0;
+  if (fi > 0){
+    const p = run.frames[fi-1];
+    v = Math.hypot(f[1]-p[1], f[2]-p[2]) / (f[0]-p[0] || 1);
+  }
+  document.getElementById('s_v').textContent = Math.round(v) + ' mm/s';
+  document.getElementById('s_d').textContent = f[4] + ' / ' + f[5];
+  document.getElementById('s_s').textContent = [f[6],f[7],f[8],f[9]].join(' · ');
+  document.getElementById('seek').value = fi / (run.frames.length-1) * 100;
+}
+
+function tick(ts){
+  if (!playing) return;
+  if (lastTs === null) lastTs = ts;
+  acc += (ts - lastTs) / 1000 * speed; lastTs = ts;
+  while (fi < run.frames.length-1 &&
+         run.frames[fi+1][0] - run.frames[0][0] <= acc) fi++;
+  draw();
+  if (fi >= run.frames.length-1){ setPlay(false); return; }
+  requestAnimationFrame(tick);
+}
+
+function setPlay(p){
+  playing = p; lastTs = null;
+  if (p && fi >= run.frames.length-1){ fi = 0; acc = 0; }
+  if (p) { acc = run.frames[fi][0] - run.frames[0][0]; requestAnimationFrame(tick); }
+  document.getElementById('play').textContent = p ? '정지' : '재생';
+}
+
+function selectRun(i){
+  run = DATA.runs[i]; fi = 0; acc = 0; setPlay(false);
+  document.querySelectorAll('.runbtn').forEach((b,j)=>b.classList.toggle('on', i===j));
+  const r = document.getElementById('s_r');
+  r.textContent = run.result;
+  r.className = 'v ' + (run.result.startsWith('완주') ? 'vgreen' : 'vred');
+  draw();
+}
+
+const runsEl = document.getElementById('runs');
+DATA.runs.forEach((r,i)=>{
+  const b = document.createElement('button');
+  b.className = 'runbtn';
+  b.innerHTML = `<b>${r.name}</b><small>${r.note} — ${r.result}</small>`;
+  b.onclick = ()=>selectRun(i);
+  runsEl.appendChild(b);
+});
+
+document.getElementById('play').onclick = ()=>setPlay(!playing);
+document.getElementById('speed').onchange = e=>{ speed = +e.target.value; };
+document.getElementById('seek').oninput = e=>{
+  setPlay(false);
+  fi = Math.round(e.target.value/100 * (run.frames.length-1));
+  acc = run.frames[fi][0] - run.frames[0][0];
+  draw();
+};
+img.onload = ()=>draw();
+selectRun(0);
+</script>

@@ -1,0 +1,6 @@
+{
+  "_note": "spike_4row_geo + geo2 회전 보정(yaw_tau 0.05, w_eff 1.5) — eval에 --weff 1.4,1.6",
+  "extends": "spike_4row_geo",
+  "yaw_tau_s": 0.05,
+  "w_eff_scale": 1.5
+}

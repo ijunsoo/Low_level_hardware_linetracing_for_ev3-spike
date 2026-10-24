@@ -1,0 +1,12 @@
+{
+  "_note": "SPIKE Prime 허브 + EV3 컬러센서 3개(페어+전방 센티넬) + 허브 IMU. 모터·센서 모델은 spike_4s(robot_params.json) 상속 — 3센서로 재배선하면 VALUE·지연 재측정 필요",
+  "extends": "spike_4s",
+  "platform": "spike",
+  "sensor_ports": ["C", "B", "A"],
+  "sensor_pos_mm": [[90.0, 25.0], [90.0, -25.0], [90.0, 0.0]],
+  "_layout_note": "일렬(권장, 2026-10-17 시뮬 1등). 페어+센티넬은 [[90,12.5],[90,-12.5],[130,0]]",
+  "sensor_white": [26, 25, 28],
+  "sensor_black": [2, 2, 2],
+  "call_cost_us": {"color_read": 47.152},
+  "_call_cost_note": "read 1회 비용 = 4센서 벤치(loop_hz 5302)에서 1/(5302×4). 센서 수가 줄어도 1회 비용은 같다고 봄"
+}

@@ -1,0 +1,12 @@
+{
+  "_note": "사용자 EV3 로봇 (2026-10-24 사진): SPIKE 로봇과 같은 치수(spike_3s_geo — 센서 바퀴축 앞 170mm·간격 23mm, 윤거 205mm, 바퀴 80mm, 기어 20:12)에 EV3 브릭. 컬러 S1 좌·S2 가운데·S3 우(시뮬 센서 순서 = 좌·우·가운데), 모터 A·B 좌(정방향 = 전진)·C·D 우(역방향 = 전진, 장착 −1), 자이로센서 없음(요레이트 = 모터 엔코더). 호출 비용·속도 추정 지연은 EV3 실측 전 가정 — 스텝당 파이썬 연산 ≈1.1ms를 dc 4회에 나눠 실음, Motor.speed() 추정 지연 10ms",
+  "_provisional": ["call_cost_us", "speed_est_tau_s", "dc_table", "motor_tau_s"],
+  "extends": "spike_3s_geo",
+  "platform": "ev3",
+  "pybricks_api": "v4",
+  "sensor_ports": ["S1", "S3", "S2"],
+  "motors": {"A": ["L", 1], "B": ["L", 1], "C": ["R", -1], "D": ["R", -1]},
+  "gyro": null,
+  "call_cost_us": {"color_read": 47.152, "motor_dc": 280, "motor_read": 30},
+  "speed_est_tau_s": 0.01
+}

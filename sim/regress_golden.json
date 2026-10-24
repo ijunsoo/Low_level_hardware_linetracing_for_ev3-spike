@@ -1,0 +1,891 @@
+{
+ "curve": {
+  "pair": [
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    94
+   ],
+   [
+    100,
+    75
+   ],
+   [
+    100,
+    62
+   ],
+   [
+    100,
+    50
+   ],
+   [
+    100,
+    31
+   ],
+   [
+    100,
+    19
+   ],
+   [
+    100,
+    6
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    100,
+    6
+   ],
+   [
+    100,
+    19
+   ],
+   [
+    100,
+    31
+   ],
+   [
+    100,
+    50
+   ],
+   [
+    100,
+    62
+   ],
+   [
+    94,
+    75
+   ],
+   [
+    75,
+    94
+   ],
+   [
+    62,
+    100
+   ],
+   [
+    50,
+    100
+   ],
+   [
+    31,
+    100
+   ],
+   [
+    19,
+    100
+   ],
+   [
+    6,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    0,
+    100
+   ],
+   [
+    6,
+    100
+   ],
+   [
+    19,
+    100
+   ],
+   [
+    31,
+    100
+   ],
+   [
+    50,
+    100
+   ],
+   [
+    62,
+    100
+   ],
+   [
+    75,
+    100
+   ],
+   [
+    94,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ],
+   [
+    100,
+    100
+   ]
+  ],
+  "row3": [
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    0
+   ],
+   [
+    100,
+    100,
+    6
+   ],
+   [
+    100,
+    100,
+    19
+   ],
+   [
+    100,
+    100,
+    31
+   ],
+   [
+    100,
+    100,
+    50
+   ],
+   [
+    100,
+    100,
+    75
+   ],
+   [
+    100,
+    94,
+    94
+   ],
+   [
+    100,
+    75,
+    100
+   ],
+   [
+    100,
+    62,
+    100
+   ],
+   [
+    100,
+    44,
+    100
+   ],
+   [
+    100,
+    19,
+    100
+   ],
+   [
+    100,
+    6,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    0,
+    100
+   ],
+   [
+    100,
+    6,
+    100
+   ],
+   [
+    100,
+    19,
+    100
+   ],
+   [
+    100,
+    31,
+    100
+   ],
+   [
+    100,
+    50,
+    100
+   ],
+   [
+    100,
+    75,
+    100
+   ],
+   [
+    94,
+    94,
+    100
+   ],
+   [
+    75,
+    100,
+    100
+   ],
+   [
+    62,
+    100,
+    100
+   ],
+   [
+    44,
+    100,
+    100
+   ],
+   [
+    19,
+    100,
+    100
+   ],
+   [
+    6,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ],
+   [
+    0,
+    100,
+    100
+   ]
+  ]
+ },
+ "ev3_ref/photo": {
+  "leds": {},
+  "mean_lat_mm": 8.29,
+  "n_trace": 3739,
+  "progress_mm": 6835.5,
+  "reason": "finish",
+  "time_s": 18.692,
+  "trace": "039b13c08d6eb32d",
+  "track_mm": 6873.8
+ },
+ "ev3_smoke/w0": {
+  "leds": {},
+  "mean_lat_mm": 6.5,
+  "n_trace": 4001,
+  "progress_mm": 4946.0,
+  "reason": "timeout",
+  "time_s": 20.0,
+  "trace": "9a72917179b76cae",
+  "track_mm": 14852.8
+ },
+ "ev3_smoke/w1": {
+  "leds": {},
+  "mean_lat_mm": 11.9,
+  "n_trace": 1915,
+  "progress_mm": 2636.0,
+  "reason": "lost",
+  "time_s": 9.573,
+  "trace": "aede0e2a768fc2fd",
+  "track_mm": 14852.8
+ },
+ "ev3_smoke/w2": {
+  "leds": {},
+  "mean_lat_mm": 13.21,
+  "n_trace": 1749,
+  "progress_mm": 2636.0,
+  "reason": "lost",
+  "time_s": 8.745,
+  "trace": "996079ed0169facc",
+  "track_mm": 14852.8
+ },
+ "geo/w0": {
+  "mean_lat_mm": 5.8,
+  "n_trace": 838,
+  "progress_mm": 2428.0,
+  "reason": "lost",
+  "time_s": 4.189,
+  "trace": "d8a2fff666642054",
+  "track_mm": 14852.8
+ },
+ "geo/w1": {
+  "mean_lat_mm": 8.96,
+  "n_trace": 689,
+  "progress_mm": 2422.0,
+  "reason": "lost",
+  "time_s": 3.441,
+  "trace": "91e7c7ad211f35f2",
+  "track_mm": 14852.8
+ },
+ "geo/w2": {
+  "mean_lat_mm": 7.29,
+  "n_trace": 835,
+  "progress_mm": 2400.0,
+  "reason": "lost",
+  "time_s": 4.174,
+  "trace": "4a92952b7620ef6f",
+  "track_mm": 14852.8
+ },
+ "lf3_ev3/w0": {
+  "leds": {
+   "GREEN": 15,
+   "RED": 15,
+   "YELLOW": 2
+  },
+  "mean_lat_mm": 20.01,
+  "n_trace": 1799,
+  "progress_mm": 2989.8,
+  "reason": "lost",
+  "time_s": 8.992,
+  "trace": "c32f02d7c456d14f",
+  "track_mm": 6873.8
+ },
+ "lf3_ev3/w1": {
+  "leds": {
+   "GREEN": 5,
+   "RED": 6,
+   "YELLOW": 3
+  },
+  "mean_lat_mm": 27.32,
+  "n_trace": 723,
+  "progress_mm": 0.0,
+  "reason": "lost",
+  "time_s": 3.61,
+  "trace": "a9473f262c170024",
+  "track_mm": 6873.8
+ },
+ "lf3_ev3/w2": {
+  "leds": {
+   "GREEN": 4,
+   "RED": 4,
+   "YELLOW": 17
+  },
+  "mean_lat_mm": 32.19,
+  "n_trace": 782,
+  "progress_mm": 0.0,
+  "reason": "lost",
+  "time_s": 3.905,
+  "trace": "90165bb965cc2367",
+  "track_mm": 6873.8
+ },
+ "lf3_parity/ev3": {
+  "leds": {
+   "GREEN": 17,
+   "RED": 17,
+   "YELLOW": 12
+  },
+  "mean_lat_mm": 19.68,
+  "n_trace": 748,
+  "progress_mm": 2231.0,
+  "reason": "lost",
+  "time_s": 3.739,
+  "trace": "f6c6c46e712f1862",
+  "trace_z": "cf58206fabccb900",
+  "track_mm": 6873.8
+ },
+ "lf3_parity/spike": {
+  "leds": {
+   "GREEN": 17,
+   "RED": 17,
+   "YELLOW": 12
+  },
+  "mean_lat_mm": 19.68,
+  "n_trace": 748,
+  "progress_mm": 2231.0,
+  "reason": "lost",
+  "time_s": 3.739,
+  "trace": "c3be2c6f1fc61388",
+  "trace_z": "cf58206fabccb900",
+  "track_mm": 6873.8
+ },
+ "lf3_spike/w0": {
+  "leds": {
+   "GREEN": 7,
+   "RED": 7,
+   "YELLOW": 5
+  },
+  "mean_lat_mm": 22.75,
+  "n_trace": 586,
+  "progress_mm": 2488.0,
+  "reason": "lost",
+  "time_s": 2.928,
+  "trace": "7349a27da4bdc318",
+  "track_mm": 14852.8
+ },
+ "lf3_spike/w1": {
+  "leds": {
+   "GREEN": 15,
+   "RED": 15,
+   "YELLOW": 2
+  },
+  "mean_lat_mm": 14.55,
+  "n_trace": 672,
+  "progress_mm": 2630.0,
+  "reason": "lost",
+  "time_s": 3.356,
+  "trace": "5096e9e8141a08d8",
+  "track_mm": 14852.8
+ },
+ "lf3_spike/w2": {
+  "leds": {
+   "GREEN": 9,
+   "RED": 9,
+   "YELLOW": 6
+  },
+  "mean_lat_mm": 17.15,
+  "n_trace": 976,
+  "progress_mm": 0.0,
+  "reason": "lost",
+  "time_s": 4.879,
+  "trace": "6ddc40996ca61313",
+  "track_mm": 14852.8
+ },
+ "spike3s_smoke/w0": {
+  "leds": {},
+  "mean_lat_mm": 6.63,
+  "n_trace": 3114,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 15.568,
+  "trace": "531382ef97e4054e",
+  "track_mm": 14852.8
+ },
+ "spike3s_smoke/w1": {
+  "leds": {},
+  "mean_lat_mm": 18.01,
+  "n_trace": 633,
+  "progress_mm": 2488.0,
+  "reason": "lost",
+  "time_s": 3.164,
+  "trace": "d462de583000144c",
+  "track_mm": 14852.8
+ },
+ "spike3s_smoke/w2": {
+  "leds": {},
+  "mean_lat_mm": 7.52,
+  "n_trace": 3343,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 16.713,
+  "trace": "c473f384985e4863",
+  "track_mm": 14852.8
+ },
+ "v14/w0": {
+  "leds": {},
+  "mean_lat_mm": 18.49,
+  "n_trace": 1075,
+  "progress_mm": 4164.7,
+  "reason": "lost",
+  "time_s": 5.372,
+  "trace": "f8fc6c1f925ce152",
+  "track_mm": 14852.8
+ },
+ "v14/w1": {
+  "leds": {},
+  "mean_lat_mm": 18.03,
+  "n_trace": 1391,
+  "progress_mm": 4162.7,
+  "reason": "lost",
+  "time_s": 6.952,
+  "trace": "e6b200ca5d838006",
+  "track_mm": 14852.8
+ },
+ "v14/w2": {
+  "leds": {},
+  "mean_lat_mm": 15.8,
+  "n_trace": 2785,
+  "progress_mm": 1952.0,
+  "reason": "lost",
+  "time_s": 13.922,
+  "trace": "9d7dcbe4cb197e33",
+  "track_mm": 14852.8
+ },
+ "v16/w0": {
+  "leds": {
+   "GREEN": 33,
+   "RED": 34,
+   "YELLOW": 83
+  },
+  "mean_lat_mm": 7.15,
+  "n_trace": 5919,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 29.591,
+  "trace": "3f0339bd44946417",
+  "track_mm": 14852.8
+ },
+ "v16/w1": {
+  "leds": {
+   "GREEN": 28,
+   "RED": 29,
+   "YELLOW": 50
+  },
+  "mean_lat_mm": 6.5,
+  "n_trace": 6234,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 31.165,
+  "trace": "f399df1c34bc3ba6",
+  "track_mm": 14852.8
+ },
+ "v16/w2": {
+  "leds": {
+   "GREEN": 34,
+   "RED": 35,
+   "YELLOW": 197
+  },
+  "mean_lat_mm": 10.14,
+  "n_trace": 6694,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 33.467,
+  "trace": "1c073f66aecd5d0c",
+  "track_mm": 14852.8
+ },
+ "v16/w3": {
+  "leds": {
+   "GREEN": 32,
+   "RED": 33,
+   "YELLOW": 78
+  },
+  "mean_lat_mm": 7.32,
+  "n_trace": 6134,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 30.669,
+  "trace": "d69e5302ebce6614",
+  "track_mm": 14852.8
+ },
+ "v16/w4": {
+  "leds": {
+   "GREEN": 34,
+   "RED": 35,
+   "YELLOW": 18
+  },
+  "mean_lat_mm": 6.74,
+  "n_trace": 5802,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 29.009,
+  "trace": "3019b303bee588d2",
+  "track_mm": 14852.8
+ },
+ "v16/w5": {
+  "leds": {
+   "GREEN": 36,
+   "RED": 36,
+   "YELLOW": 291
+  },
+  "mean_lat_mm": 6.87,
+  "n_trace": 5327,
+  "progress_mm": 14814.8,
+  "reason": "finish",
+  "time_s": 26.635,
+  "trace": "9ef23e41e4d3b787",
+  "track_mm": 14852.8
+ },
+ "v5/main": {
+  "mean_lat_mm": 14.69,
+  "n_trace": 233,
+  "progress_mm": 677.2,
+  "reason": "lost",
+  "time_s": 1.163,
+  "trace": "f442abf1b8d529ef",
+  "track_mm": 2174.3
+ }
+}

@@ -1,0 +1,218 @@
+[  1/200] kp=0.026 kd=17.2 slew=21 ema=874 df=259 tst=82 wc=12 → score 910.5 완주0/2 진행851mm
+[  2/200] kp=0.017 kd=14.6 slew=28 ema=626 df=196 tst=82 wc=15 → score 1000.0 완주0/2 진행0mm
+[  3/200] kp=0.073 kd=13.6 slew=39 ema=538 df=206 tst=99 wc=13 → score 844.7 완주0/2 진행1477mm
+[  4/200] kp=0.009 kd=10.5 slew=35 ema=431 df=374 tst=95 wc=17 → score 943.5 완주0/2 진행537mm
+[  5/200] kp=0.011 kd=15.1 slew=45 ema=793 df=217 tst=94 wc=17 → score 935.1 완주0/2 진행617mm
+[  6/200] kp=0.015 kd= 2.1 slew=44 ema=759 df=442 tst=78 wc=16 → score 873.2 완주0/2 진행1206mm
+[  7/200] kp=0.063 kd= 8.8 slew=41 ema=412 df=385 tst=97 wc=14 → score 909.3 완주0/2 진행863mm
+[  8/200] kp=0.054 kd= 3.0 slew=52 ema=482 df=281 tst=79 wc=9 → score 964.5 완주0/2 진행338mm
+[  9/200] kp=0.010 kd=12.1 slew=32 ema=762 df=378 tst=82 wc=16 → score 845.5 완주0/2 진행1470mm
+[ 10/200] kp=0.079 kd= 5.9 slew=26 ema=436 df=240 tst=92 wc=9 → score 1000.0 완주0/2 진행0mm
+[ 11/200] kp=0.031 kd=15.4 slew=47 ema=582 df=306 tst=81 wc=7 → score 909.7 완주0/2 진행859mm
+[ 12/200] kp=0.075 kd=14.4 slew=50 ema=779 df=358 tst=97 wc=4 → score 844.7 완주0/2 진행1477mm
+[ 13/200] kp=0.026 kd=14.6 slew=28 ema=784 df=333 tst=74 wc=8 → score 975.5 완주0/2 진행233mm
+[ 14/200] kp=0.012 kd= 8.3 slew=25 ema=820 df=286 tst=99 wc=11 → score 945.6 완주0/2 진행517mm
+[ 15/200] kp=0.013 kd=17.8 slew=49 ema=579 df=374 tst=81 wc=3 → score 1000.0 완주0/2 진행0mm
+[ 16/200] kp=0.045 kd= 9.1 slew=24 ema=852 df=155 tst=79 wc=17 → score 743.8 완주0/2 진행2437mm
+[ 17/200] kp=0.018 kd=14.2 slew=16 ema=623 df=280 tst=84 wc=12 → score 845.3 완주0/2 진행1472mm
+[ 18/200] kp=0.058 kd=13.7 slew=42 ema=543 df=423 tst=77 wc=12 → score 842.5 완주0/2 진행1498mm
+[ 19/200] kp=0.009 kd= 5.0 slew=45 ema=685 df=205 tst=98 wc=5 → score 816.8 완주0/2 진행1743mm
+[ 20/200] kp=0.009 kd= 4.8 slew=23 ema=668 df=307 tst=98 wc=14 → score 1000.0 완주0/2 진행0mm
+[ 21/200] kp=0.011 kd= 7.8 slew=19 ema=699 df=241 tst=77 wc=15 → score 942.6 완주0/2 진행546mm
+[ 22/200] kp=0.022 kd=13.0 slew=22 ema=592 df=156 tst=72 wc=10 → score 875.9 완주0/2 진행1181mm
+[ 23/200] kp=0.054 kd= 3.0 slew=19 ema=881 df=413 tst=80 wc=8 → score 819.2 완주0/2 진행1719mm
+[ 24/200] kp=0.068 kd=12.0 slew=20 ema=456 df=313 tst=72 wc=3 → score 635.8 완주0/2 진행3465mm
+[ 25/200] kp=0.037 kd=13.1 slew=22 ema=411 df=172 tst=98 wc=8 → score 908.8 완주0/2 진행868mm
+[ 26/200] kp=0.015 kd=10.8 slew=40 ema=649 df=298 tst=87 wc=17 → score 1000.0 완주0/2 진행0mm
+[ 27/200] kp=0.033 kd= 6.0 slew=32 ema=873 df=377 tst=87 wc=6 → score 886.3 완주0/2 진행1082mm
+[ 28/200] kp=0.019 kd= 2.9 slew=43 ema=423 df=173 tst=72 wc=16 → score 965.2 완주0/2 진행331mm
+[ 29/200] kp=0.045 kd= 4.0 slew=51 ema=815 df=212 tst=88 wc=11 → score 934.7 완주0/2 진행621mm
+[ 30/200] kp=0.013 kd=14.5 slew=27 ema=856 df=330 tst=79 wc=9 → score 934.2 완주0/2 진행626mm
+[ 31/200] kp=0.054 kd= 2.8 slew=52 ema=806 df=473 tst=89 wc=10 → score 819.9 완주0/2 진행1713mm
+[ 32/200] kp=0.013 kd= 7.7 slew=39 ema=613 df=192 tst=98 wc=9 → score 855.9 완주0/2 진행1371mm
+[ 33/200] kp=0.013 kd= 9.6 slew=32 ema=706 df=237 tst=73 wc=9 → score 816.0 완주0/2 진행1750mm
+[ 34/200] kp=0.052 kd= 9.5 slew=27 ema=543 df=481 tst=98 wc=15 → score 872.0 완주0/2 진행1218mm
+[ 35/200] kp=0.020 kd= 7.6 slew=58 ema=485 df=364 tst=71 wc=19 → score 888.6 완주0/2 진행1060mm
+[ 36/200] kp=0.038 kd= 9.0 slew=33 ema=754 df=257 tst=85 wc=12 → score 934.7 완주0/2 진행621mm
+[ 37/200] kp=0.024 kd=14.8 slew=43 ema=681 df=454 tst=75 wc=5 → score 972.7 완주0/2 진행260mm
+[ 38/200] kp=0.042 kd=10.9 slew=34 ema=858 df=449 tst=76 wc=5 → score 818.6 완주0/2 진행1726mm
+[ 39/200] kp=0.029 kd=16.8 slew=15 ema=481 df=402 tst=81 wc=7 → score 962.7 완주0/2 진행355mm
+[ 40/200] kp=0.041 kd=13.6 slew=51 ema=535 df=369 tst=94 wc=18 → score 921.2 완주0/2 진행750mm
+[ 41/200] kp=0.062 kd= 8.7 slew=26 ema=409 df=251 tst=93 wc=8 → score 878.2 완주0/2 진행1159mm
+[ 42/200] kp=0.013 kd=11.0 slew=50 ema=864 df=455 tst=74 wc=10 → score 790.4 완주0/2 진행1994mm
+[ 43/200] kp=0.010 kd= 7.0 slew=26 ema=773 df=275 tst=72 wc=15 → score 919.0 완주0/2 진행771mm
+[ 44/200] kp=0.062 kd=13.7 slew=33 ema=642 df=314 tst=96 wc=12 → score 936.3 완주0/2 진행606mm
+[ 45/200] kp=0.021 kd=13.0 slew=29 ema=703 df=404 tst=73 wc=19 → score 1000.0 완주0/2 진행0mm
+[ 46/200] kp=0.069 kd=16.4 slew=47 ema=737 df=401 tst=87 wc=6 → score 825.9 완주0/2 진행1656mm
+[ 47/200] kp=0.012 kd=15.2 slew=28 ema=717 df=274 tst=76 wc=4 → score 1000.0 완주0/2 진행0mm
+[ 48/200] kp=0.026 kd= 4.1 slew=38 ema=671 df=323 tst=76 wc=9 → score 937.7 완주0/2 진행593mm
+[ 49/200] kp=0.043 kd= 9.7 slew=50 ema=579 df=339 tst=81 wc=13 → score 934.3 완주0/2 진행625mm
+[ 50/200] kp=0.063 kd= 6.4 slew=59 ema=595 df=324 tst=75 wc=14 → score 880.2 완주0/2 진행1139mm
+[ 51/200] kp=0.014 kd= 2.6 slew=49 ema=875 df=229 tst=74 wc=14 → score 935.2 완주0/2 진행616mm
+[ 52/200] kp=0.058 kd=16.7 slew=57 ema=694 df=325 tst=71 wc=17 → score 1000.0 완주0/2 진행0mm
+[ 53/200] kp=0.046 kd= 4.5 slew=23 ema=542 df=363 tst=95 wc=12 → score 935.1 완주0/2 진행617mm
+[ 54/200] kp=0.013 kd=10.0 slew=19 ema=656 df=426 tst=99 wc=12 → score 868.8 완주0/2 진행1248mm
+[ 55/200] kp=0.050 kd=16.3 slew=59 ema=583 df=238 tst=73 wc=6 → score 911.4 완주0/2 진행843mm
+[ 56/200] kp=0.034 kd=15.1 slew=56 ema=481 df=437 tst=93 wc=19 → score 942.1 완주0/2 진행551mm
+[ 57/200] kp=0.011 kd= 9.7 slew=31 ema=671 df=361 tst=89 wc=17 → score 849.8 완주0/2 진행1429mm
+[ 58/200] kp=0.022 kd= 6.5 slew=44 ema=872 df=431 tst=78 wc=14 → score 1000.0 완주0/2 진행0mm
+[ 59/200] kp=0.022 kd= 6.4 slew=30 ema=896 df=484 tst=72 wc=3 → score 975.9 완주0/2 진행229mm
+[ 60/200] kp=0.017 kd= 7.1 slew=50 ema=559 df=408 tst=81 wc=5 → score 917.5 완주0/2 진행785mm
+[ 61/200] kp=0.023 kd=13.0 slew=53 ema=595 df=399 tst=92 wc=15 → score 935.0 완주0/2 진행618mm
+[ 62/200] kp=0.051 kd= 7.3 slew=30 ema=455 df=305 tst=73 wc=12 → score 881.4 완주0/2 진행1128mm
+[ 63/200] kp=0.011 kd=11.5 slew=51 ema=496 df=469 tst=99 wc=7 → score 935.9 완주0/2 진행610mm
+[ 64/200] kp=0.053 kd= 5.8 slew=51 ema=721 df=430 tst=82 wc=4 → score 954.3 완주0/2 진행435mm
+[ 65/200] kp=0.011 kd=17.6 slew=26 ema=846 df=466 tst=70 wc=18 → score 1000.0 완주0/2 진행0mm
+[ 66/200] kp=0.016 kd= 7.6 slew=23 ema=879 df=431 tst=83 wc=9 → score 948.7 완주0/2 진행488mm
+[ 67/200] kp=0.047 kd= 3.7 slew=57 ema=737 df=171 tst=95 wc=3 → score 964.1 완주0/2 진행341mm
+[ 68/200] kp=0.025 kd= 3.2 slew=57 ema=875 df=320 tst=71 wc=19 → score 819.8 완주0/2 진행1714mm
+[ 69/200] kp=0.010 kd=13.8 slew=30 ema=419 df=196 tst=94 wc=14 → score 1000.0 완주0/2 진행0mm
+[ 70/200] kp=0.008 kd=10.2 slew=47 ema=779 df=396 tst=96 wc=10 → score 1000.0 완주0/2 진행0mm
+[ 71/200] kp=0.009 kd= 3.7 slew=38 ema=526 df=249 tst=92 wc=9 → score 935.0 완주0/2 진행618mm
+[ 72/200] kp=0.013 kd=12.4 slew=26 ema=496 df=278 tst=70 wc=7 → score 852.9 완주0/2 진행1399mm
+[ 73/200] kp=0.024 kd=13.0 slew=30 ema=863 df=450 tst=79 wc=7 → score 934.5 완주0/2 진행623mm
+[ 74/200] kp=0.016 kd= 9.5 slew=43 ema=741 df=224 tst=87 wc=4 → score 977.8 완주0/2 진행211mm
+[ 75/200] kp=0.054 kd=16.9 slew=58 ema=596 df=413 tst=89 wc=8 → score 934.9 완주0/2 진행619mm
+[ 76/200] kp=0.008 kd=12.2 slew=25 ema=878 df=218 tst=79 wc=18 → score 943.8 완주0/2 진행535mm
+[ 77/200] kp=0.020 kd=16.1 slew=30 ema=631 df=318 tst=79 wc=6 → score 842.5 완주0/2 진행1498mm
+[ 78/200] kp=0.019 kd= 4.1 slew=35 ema=893 df=358 tst=87 wc=19 → score 880.4 완주0/2 진행1137mm
+[ 79/200] kp=0.034 kd= 7.6 slew=51 ema=468 df=311 tst=95 wc=4 → score 887.7 완주0/2 진행1068mm
+[ 80/200] kp=0.019 kd=10.3 slew=49 ema=793 df=439 tst=78 wc=11 → score 853.8 완주0/2 진행1391mm
+[ 81/200] kp=0.045 kd= 7.7 slew=49 ema=423 df=482 tst=76 wc=7 → score 935.9 완주0/2 진행610mm
+[ 82/200] kp=0.027 kd= 3.0 slew=42 ema=525 df=224 tst=97 wc=4 → score 843.6 완주0/2 진행1488mm
+[ 83/200] kp=0.017 kd=11.7 slew=26 ema=678 df=419 tst=78 wc=9 → score 880.5 완주0/2 진행1136mm
+[ 84/200] kp=0.069 kd= 2.3 slew=53 ema=881 df=339 tst=99 wc=10 → score 651.6 완주0/2 진행3314mm
+[ 85/200] kp=0.042 kd= 9.9 slew=45 ema=870 df=231 tst=82 wc=13 → score 934.7 완주0/2 진행621mm
+[ 86/200] kp=0.020 kd=16.4 slew=15 ema=551 df=413 tst=74 wc=8 → score 937.7 완주0/2 진행593mm
+[ 87/200] kp=0.058 kd= 7.0 slew=24 ema=643 df=319 tst=98 wc=12 → score 934.6 완주0/2 진행622mm
+[ 88/200] kp=0.061 kd=12.5 slew=56 ema=577 df=295 tst=81 wc=17 → score 934.2 완주0/2 진행626mm
+[ 89/200] kp=0.026 kd= 4.9 slew=25 ema=751 df=219 tst=86 wc=13 → score 970.5 완주0/2 진행281mm
+[ 90/200] kp=0.009 kd= 5.7 slew=40 ema=611 df=221 tst=79 wc=14 → score 938.5 완주0/2 진행585mm
+[ 91/200] kp=0.057 kd=16.2 slew=39 ema=768 df=390 tst=94 wc=15 → score 936.4 완주0/2 진행605mm
+[ 92/200] kp=0.028 kd= 8.0 slew=48 ema=465 df=280 tst=82 wc=15 → score 934.9 완주0/2 진행619mm
+[ 93/200] kp=0.010 kd= 4.6 slew=46 ema=812 df=372 tst=87 wc=18 → score 908.5 완주0/2 진행870mm
+[ 94/200] kp=0.014 kd=16.5 slew=27 ema=890 df=255 tst=77 wc=6 → score 868.3 완주0/2 진행1253mm
+[ 95/200] kp=0.011 kd= 9.1 slew=33 ema=814 df=381 tst=82 wc=6 → score 934.6 완주0/2 진행622mm
+[ 96/200] kp=0.037 kd= 4.4 slew=49 ema=690 df=339 tst=82 wc=11 → score 897.2 완주0/2 진행978mm
+[ 97/200] kp=0.021 kd=10.3 slew=31 ema=641 df=386 tst=93 wc=13 → score 915.0 완주0/2 진행809mm
+[ 98/200] kp=0.024 kd= 9.2 slew=21 ema=433 df=388 tst=97 wc=3 → score 974.8 완주0/2 진행240mm
+[ 99/200] kp=0.060 kd=16.4 slew=59 ema=566 df=313 tst=99 wc=18 → score 936.4 완주0/2 진행605mm
+[100/200] kp=0.030 kd=12.4 slew=33 ema=772 df=336 tst=99 wc=4 → score 1000.0 완주0/2 진행0mm
+[101/200] kp=0.022 kd= 4.9 slew=16 ema=784 df=179 tst=89 wc=19 → score 888.6 완주0/2 진행1060mm
+[102/200] kp=0.013 kd= 3.5 slew=21 ema=865 df=426 tst=76 wc=8 → score 981.2 완주0/2 진행179mm
+[103/200] kp=0.018 kd=17.0 slew=40 ema=850 df=473 tst=97 wc=12 → score 636.8 완주0/2 진행3454mm
+[104/200] kp=0.029 kd=12.9 slew=50 ema=671 df=373 tst=94 wc=17 → score 892.7 완주0/2 진행1021mm
+[105/200] kp=0.011 kd= 2.5 slew=53 ema=564 df=332 tst=93 wc=11 → score 958.4 완주0/2 진행396mm
+[106/200] kp=0.024 kd= 3.4 slew=40 ema=556 df=444 tst=84 wc=10 → score 860.8 완주0/2 진행1324mm
+[107/200] kp=0.008 kd= 4.2 slew=28 ema=568 df=303 tst=78 wc=8 → score 873.5 완주0/2 진행1203mm
+[108/200] kp=0.012 kd= 3.6 slew=30 ema=578 df=412 tst=91 wc=13 → score 872.6 완주0/2 진행1212mm
+[109/200] kp=0.016 kd= 2.6 slew=57 ema=776 df=281 tst=96 wc=19 → score 1000.0 완주0/2 진행0mm
+[110/200] kp=0.011 kd= 3.6 slew=31 ema=507 df=174 tst=92 wc=18 → score 972.1 완주0/2 진행265mm
+[111/200] kp=0.018 kd= 9.9 slew=29 ema=486 df=323 tst=89 wc=8 → score 937.0 완주0/2 진행599mm
+[112/200] kp=0.029 kd= 8.2 slew=44 ema=511 df=313 tst=70 wc=17 → score 976.9 완주0/2 진행220mm
+[113/200] kp=0.028 kd= 5.0 slew=19 ema=435 df=372 tst=88 wc=11 → score 936.7 완주0/2 진행602mm
+[114/200] kp=0.037 kd= 4.6 slew=22 ema=853 df=474 tst=91 wc=8 → score 888.8 완주0/2 진행1058mm
+[115/200] kp=0.075 kd= 5.8 slew=32 ema=523 df=377 tst=86 wc=6 → score 794.9 완주0/2 진행1951mm
+[116/200] kp=0.010 kd= 7.9 slew=33 ema=656 df=273 tst=92 wc=8 → score 911.6 완주0/2 진행841mm
+[117/200] kp=0.010 kd= 9.4 slew=39 ema=682 df=160 tst=93 wc=11 → score 1000.0 완주0/2 진행0mm
+[118/200] kp=0.047 kd= 8.8 slew=57 ema=839 df=275 tst=80 wc=5 → score 989.3 완주0/2 진행102mm
+[119/200] kp=0.009 kd=11.6 slew=35 ema=569 df=489 tst=73 wc=19 → score 936.6 완주0/2 진행603mm
+[120/200] kp=0.027 kd=15.8 slew=18 ema=729 df=201 tst=76 wc=15 → score 1000.0 완주0/2 진행0mm
+[121/200] kp=0.011 kd=14.8 slew=24 ema=637 df=234 tst=92 wc=3 → score 970.8 완주0/2 진행278mm
+[122/200] kp=0.035 kd= 7.3 slew=41 ema=582 df=457 tst=74 wc=11 → score 909.2 완주0/2 진행864mm
+[123/200] kp=0.020 kd=15.2 slew=33 ema=585 df=196 tst=96 wc=11 → score 936.1 완주0/2 진행608mm
+[124/200] kp=0.049 kd= 5.1 slew=52 ema=679 df=186 tst=99 wc=16 → score 937.9 완주0/2 진행591mm
+[125/200] kp=0.044 kd=12.8 slew=35 ema=723 df=480 tst=95 wc=18 → score 1000.0 완주0/2 진행0mm
+[126/200] kp=0.032 kd=16.1 slew=38 ema=706 df=400 tst=72 wc=4 → score 935.4 완주0/2 진행615mm
+[127/200] kp=0.030 kd= 9.3 slew=15 ema=659 df=194 tst=70 wc=4 → score 824.0 완주0/2 진행1674mm
+[128/200] kp=0.034 kd=11.4 slew=59 ema=706 df=208 tst=97 wc=10 → score 818.2 완주0/2 진행1729mm
+[129/200] kp=0.022 kd=11.6 slew=55 ema=550 df=270 tst=90 wc=8 → score 936.1 완주0/2 진행608mm
+[130/200] kp=0.022 kd= 5.7 slew=15 ema=700 df=228 tst=70 wc=14 → score 973.7 완주0/2 진행250mm
+[131/200] kp=0.038 kd= 4.6 slew=41 ema=866 df=468 tst=95 wc=6 → score 909.0 완주0/2 진행866mm
+[132/200] kp=0.042 kd=13.0 slew=15 ema=891 df=258 tst=92 wc=11 → score 963.6 완주0/2 진행346mm
+[133/200] kp=0.053 kd=12.9 slew=44 ema=740 df=272 tst=99 wc=14 → score 858.8 완주0/2 진행1343mm
+[134/200] kp=0.011 kd= 2.4 slew=42 ema=421 df=168 tst=82 wc=5 → score 873.2 완주0/2 진행1206mm
+[135/200] kp=0.011 kd= 2.8 slew=34 ema=507 df=317 tst=94 wc=7 → score 1000.0 완주0/2 진행0mm
+[136/200] kp=0.009 kd= 5.2 slew=17 ema=628 df=478 tst=74 wc=15 → score 874.0 완주0/2 진행1199mm
+[137/200] kp=0.034 kd=16.9 slew=50 ema=610 df=251 tst=74 wc=6 → score 1000.0 완주0/2 진행0mm
+[138/200] kp=0.056 kd=10.4 slew=32 ema=742 df=363 tst=76 wc=6 → score 716.9 완주0/2 진행2693mm
+[139/200] kp=0.076 kd=11.8 slew=24 ema=804 df=304 tst=91 wc=19 → score 908.5 완주0/2 진행870mm
+[140/200] kp=0.048 kd= 7.0 slew=31 ema=743 df=359 tst=89 wc=5 → score 864.0 완주0/2 진행1293mm
+[141/200] kp=0.016 kd=15.2 slew=41 ema=565 df=337 tst=83 wc=9 → score 1000.0 완주0/2 진행0mm
+[142/200] kp=0.031 kd= 5.3 slew=51 ema=412 df=228 tst=88 wc=8 → score 977.3 완주0/2 진행216mm
+[143/200] kp=0.017 kd= 3.9 slew=56 ema=479 df=407 tst=89 wc=6 → score 976.8 완주0/2 진행221mm
+[144/200] kp=0.014 kd=15.0 slew=19 ema=648 df=334 tst=70 wc=10 → score 851.9 완주0/2 진행1409mm
+[145/200] kp=0.032 kd= 2.6 slew=34 ema=644 df=483 tst=87 wc=11 → score 970.1 완주0/2 진행284mm
+[146/200] kp=0.033 kd=16.7 slew=40 ema=810 df=437 tst=81 wc=8 → score 868.9 완주0/2 진행1247mm
+[147/200] kp=0.019 kd= 6.4 slew=25 ema=882 df=384 tst=83 wc=14 → score 816.3 완주0/2 진행1747mm
+[148/200] kp=0.029 kd=11.4 slew=22 ema=468 df=225 tst=79 wc=14 → score 943.0 완주0/2 진행542mm
+[149/200] kp=0.009 kd=12.2 slew=48 ema=490 df=451 tst=73 wc=10 → score 802.1 완주0/2 진행1882mm
+[150/200] kp=0.009 kd=15.0 slew=38 ema=859 df=209 tst=83 wc=11 → score 1000.0 완주0/2 진행0mm
+[151/200] kp=0.078 kd= 9.5 slew=51 ema=641 df=439 tst=72 wc=19 → score 937.6 완주0/2 진행594mm
+[152/200] kp=0.036 kd= 4.4 slew=24 ema=650 df=208 tst=97 wc=17 → score 935.2 완주0/2 진행616mm
+[153/200] kp=0.050 kd=13.1 slew=22 ema=413 df=344 tst=74 wc=7 → score 930.2 완주0/2 진행664mm
+[154/200] kp=0.075 kd=12.7 slew=32 ema=776 df=217 tst=73 wc=14 → score 970.4 완주0/2 진행282mm
+[155/200] kp=0.070 kd= 9.4 slew=20 ema=524 df=292 tst=88 wc=7 → score 934.9 완주0/2 진행619mm
+[156/200] kp=0.051 kd= 5.2 slew=58 ema=578 df=381 tst=88 wc=3 → score 932.9 완주0/2 진행638mm
+[157/200] kp=0.012 kd= 2.8 slew=43 ema=554 df=342 tst=77 wc=11 → score 889.5 완주0/2 진행1051mm
+[158/200] kp=0.028 kd=17.3 slew=21 ema=815 df=406 tst=98 wc=12 → score 988.9 완주0/2 진행106mm
+[159/200] kp=0.020 kd=10.1 slew=46 ema=596 df=206 tst=94 wc=13 → score 873.9 완주0/2 진행1200mm
+[160/200] kp=0.066 kd=15.7 slew=21 ema=720 df=265 tst=76 wc=12 → score 1000.0 완주0/2 진행0mm
+[161/200] kp=0.025 kd= 5.7 slew=35 ema=485 df=270 tst=89 wc=16 → score 909.4 완주0/2 진행862mm
+[162/200] kp=0.009 kd=14.3 slew=57 ema=520 df=393 tst=88 wc=6 → score 935.4 완주0/2 진행615mm
+[163/200] kp=0.032 kd= 3.4 slew=45 ema=792 df=164 tst=96 wc=12 → score 843.2 완주0/2 진행1492mm
+[164/200] kp=0.030 kd= 3.2 slew=19 ema=885 df=433 tst=90 wc=4 → score 935.8 완주0/2 진행611mm
+[165/200] kp=0.042 kd= 8.7 slew=37 ema=770 df=355 tst=76 wc=19 → score 973.3 완주0/2 진행254mm
+[166/200] kp=0.026 kd=16.4 slew=38 ema=566 df=458 tst=77 wc=17 → score 935.9 완주0/2 진행610mm
+[167/200] kp=0.047 kd=13.0 slew=39 ema=588 df=250 tst=87 wc=7 → score 908.4 완주0/2 진행871mm
+[168/200] kp=0.022 kd=14.4 slew=33 ema=473 df=208 tst=98 wc=17 → score 819.0 완주0/2 진행1722mm
+[169/200] kp=0.019 kd= 8.0 slew=53 ema=756 df=469 tst=70 wc=12 → score 974.0 완주0/2 진행247mm
+[170/200] kp=0.029 kd= 6.2 slew=37 ema=548 df=370 tst=87 wc=11 → score 874.8 완주0/2 진행1191mm
+[171/200] kp=0.049 kd=16.8 slew=22 ema=842 df=210 tst=87 wc=10 → score 934.3 완주0/2 진행625mm
+[172/200] kp=0.018 kd= 9.5 slew=26 ema=578 df=445 tst=75 wc=13 → score 972.5 완주0/2 진행262mm
+[173/200] kp=0.014 kd=13.7 slew=25 ema=818 df=395 tst=73 wc=5 → score 886.7 완주0/2 진행1078mm
+[174/200] kp=0.027 kd= 4.9 slew=28 ema=743 df=321 tst=79 wc=18 → score 1000.0 완주0/2 진행0mm
+[175/200] kp=0.031 kd= 6.1 slew=54 ema=511 df=341 tst=98 wc=9 → score 934.9 완주0/2 진행619mm
+[176/200] kp=0.015 kd= 2.7 slew=25 ema=610 df=450 tst=97 wc=14 → score 937.0 완주0/2 진행599mm
+[177/200] kp=0.014 kd= 7.0 slew=23 ema=510 df=381 tst=76 wc=10 → score 863.4 완주0/2 진행1300mm
+[178/200] kp=0.053 kd=14.0 slew=57 ema=860 df=343 tst=90 wc=18 → score 941.3 완주0/2 진행558mm
+[179/200] kp=0.023 kd= 3.5 slew=32 ema=467 df=470 tst=92 wc=4 → score 941.2 완주0/2 진행559mm
+[180/200] kp=0.018 kd= 4.9 slew=19 ema=460 df=192 tst=94 wc=17 → score 1000.0 완주0/2 진행0mm
+[181/200] kp=0.011 kd= 4.3 slew=19 ema=640 df=169 tst=93 wc=4 → score 817.8 완주0/2 진행1733mm
+[182/200] kp=0.014 kd=14.8 slew=38 ema=692 df=467 tst=90 wc=7 → score 975.4 완주0/2 진행234mm
+[183/200] kp=0.011 kd= 2.4 slew=58 ema=415 df=168 tst=83 wc=19 → score 938.1 완주0/2 진행589mm
+[184/200] kp=0.070 kd=17.5 slew=29 ema=754 df=327 tst=99 wc=3 → score 889.4 완주0/2 진행1052mm
+[185/200] kp=0.015 kd=12.8 slew=59 ema=574 df=345 tst=86 wc=14 → score 742.8 완주0/2 진행2446mm
+[186/200] kp=0.020 kd= 3.9 slew=27 ema=408 df=290 tst=80 wc=3 → score 938.8 완주0/2 진행582mm
+[187/200] kp=0.029 kd=14.8 slew=38 ema=863 df=419 tst=86 wc=3 → score 935.1 완주0/2 진행617mm
+[188/200] kp=0.012 kd=15.8 slew=55 ema=763 df=448 tst=77 wc=8 → score 950.4 완주0/2 진행472mm
+[189/200] kp=0.056 kd= 5.4 slew=33 ema=894 df=396 tst=93 wc=12 → score 960.2 완주0/2 진행379mm
+[190/200] kp=0.028 kd=17.9 slew=56 ema=648 df=488 tst=93 wc=3 → score 1000.0 완주0/2 진행0mm
+[191/200] kp=0.013 kd=17.6 slew=51 ema=561 df=479 tst=84 wc=7 → score 1000.0 완주0/2 진행0mm
+[192/200] kp=0.033 kd=10.1 slew=35 ema=576 df=231 tst=72 wc=15 → score 1000.0 완주0/2 진행0mm
+[193/200] kp=0.072 kd= 8.1 slew=35 ema=544 df=153 tst=83 wc=3 → score 635.3 완주0/2 진행3469mm
+[194/200] kp=0.013 kd= 7.8 slew=27 ema=454 df=456 tst=88 wc=13 → score 1000.0 완주0/2 진행0mm
+[195/200] kp=0.053 kd= 9.5 slew=48 ema=731 df=288 tst=72 wc=11 → score 820.0 완주0/2 진행1712mm
+[196/200] kp=0.028 kd= 3.4 slew=33 ema=740 df=442 tst=85 wc=16 → score 901.0 완주0/2 진행942mm
+[197/200] kp=0.037 kd= 7.2 slew=54 ema=465 df=176 tst=81 wc=10 → score 965.6 완주0/2 진행327mm
+[198/200] kp=0.012 kd=17.8 slew=41 ema=789 df=284 tst=75 wc=10 → score 882.5 완주0/2 진행1118mm
+[199/200] kp=0.038 kd= 2.4 slew=54 ema=630 df=276 tst=78 wc=8 → score 874.2 완주0/2 진행1197mm
+[200/200] kp=0.011 kd=14.1 slew=29 ema=552 df=253 tst=99 wc=16 → score 883.3 완주0/2 진행1110mm
+
+=== TOP 15 (gear 2.0, tau 0.21~0.49 랜덤) ===
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.072, "kd": 8.1, "max_steer_delta": 35, "ema_alpha": 544, "d_filter": 153, "turn_st": 83, "corner_black": 27, "reacquire": 48, "white_confirm": 3, "mem_frames": 85, "st_bank": 70, "edge_err": 80, "score": 635.34, "finish": "0/2", "time_s": 0.0, "prog": 3469}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.068, "kd": 12.0, "max_steer_delta": 20, "ema_alpha": 456, "d_filter": 313, "turn_st": 72, "corner_black": 30, "reacquire": 53, "white_confirm": 3, "mem_frames": 189, "st_bank": 91, "edge_err": 131, "score": 635.76, "finish": "0/2", "time_s": 0.0, "prog": 3465}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.018, "kd": 17.0, "max_steer_delta": 40, "ema_alpha": 850, "d_filter": 473, "turn_st": 97, "corner_black": 27, "reacquire": 52, "white_confirm": 12, "mem_frames": 63, "st_bank": 97, "edge_err": 55, "score": 636.82, "finish": "0/2", "time_s": 0.0, "prog": 3454}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.069, "kd": 2.3, "max_steer_delta": 53, "ema_alpha": 881, "d_filter": 339, "turn_st": 99, "corner_black": 32, "reacquire": 51, "white_confirm": 10, "mem_frames": 134, "st_bank": 87, "edge_err": 63, "score": 651.59, "finish": "0/2", "time_s": 0.0, "prog": 3314}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.056, "kd": 10.4, "max_steer_delta": 32, "ema_alpha": 742, "d_filter": 363, "turn_st": 76, "corner_black": 22, "reacquire": 51, "white_confirm": 6, "mem_frames": 206, "st_bank": 61, "edge_err": 127, "score": 716.88, "finish": "0/2", "time_s": 0.0, "prog": 2693}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.015, "kd": 12.8, "max_steer_delta": 59, "ema_alpha": 574, "d_filter": 345, "turn_st": 86, "corner_black": 19, "reacquire": 57, "white_confirm": 14, "mem_frames": 183, "st_bank": 68, "edge_err": 46, "score": 742.83, "finish": "0/2", "time_s": 0.0, "prog": 2446}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.045, "kd": 9.1, "max_steer_delta": 24, "ema_alpha": 852, "d_filter": 155, "turn_st": 79, "corner_black": 39, "reacquire": 42, "white_confirm": 17, "mem_frames": 156, "st_bank": 92, "edge_err": 103, "score": 743.79, "finish": "0/2", "time_s": 0.0, "prog": 2437}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.013, "kd": 11.0, "max_steer_delta": 50, "ema_alpha": 864, "d_filter": 455, "turn_st": 74, "corner_black": 34, "reacquire": 55, "white_confirm": 10, "mem_frames": 64, "st_bank": 66, "edge_err": 114, "score": 790.37, "finish": "0/2", "time_s": 0.0, "prog": 1994}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.075, "kd": 5.8, "max_steer_delta": 32, "ema_alpha": 523, "d_filter": 377, "turn_st": 86, "corner_black": 34, "reacquire": 35, "white_confirm": 6, "mem_frames": 155, "st_bank": 83, "edge_err": 122, "score": 794.89, "finish": "0/2", "time_s": 0.0, "prog": 1951}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.009, "kd": 12.2, "max_steer_delta": 48, "ema_alpha": 490, "d_filter": 451, "turn_st": 73, "corner_black": 35, "reacquire": 40, "white_confirm": 10, "mem_frames": 123, "st_bank": 82, "edge_err": 103, "score": 802.1, "finish": "0/2", "time_s": 0.0, "prog": 1882}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.013, "kd": 9.6, "max_steer_delta": 32, "ema_alpha": 706, "d_filter": 237, "turn_st": 73, "corner_black": 26, "reacquire": 54, "white_confirm": 9, "mem_frames": 217, "st_bank": 76, "edge_err": 69, "score": 815.99, "finish": "0/2", "time_s": 0.0, "prog": 1750}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.019, "kd": 6.4, "max_steer_delta": 25, "ema_alpha": 882, "d_filter": 384, "turn_st": 83, "corner_black": 29, "reacquire": 60, "white_confirm": 14, "mem_frames": 80, "st_bank": 68, "edge_err": 129, "score": 816.31, "finish": "0/2", "time_s": 0.0, "prog": 1747}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.009, "kd": 5.0, "max_steer_delta": 45, "ema_alpha": 685, "d_filter": 205, "turn_st": 98, "corner_black": 18, "reacquire": 50, "white_confirm": 5, "mem_frames": 174, "st_bank": 71, "edge_err": 53, "score": 816.77, "finish": "0/2", "time_s": 0.0, "prog": 1743}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.011, "kd": 4.3, "max_steer_delta": 19, "ema_alpha": 640, "d_filter": 169, "turn_st": 93, "corner_black": 25, "reacquire": 40, "white_confirm": 4, "mem_frames": 151, "st_bank": 91, "edge_err": 98, "score": 817.78, "finish": "0/2", "time_s": 0.0, "prog": 1733}
+{"power": 100, "spd_k": 0.0, "min_power": 100, "brake_frames": 0, "brake_duty": 0, "turn_power": 100, "settle_frames": 0, "settle_power": 100, "kp": 0.034, "kd": 11.4, "max_steer_delta": 59, "ema_alpha": 706, "d_filter": 208, "turn_st": 97, "corner_black": 22, "reacquire": 51, "white_confirm": 10, "mem_frames": 189, "st_bank": 63, "edge_err": 76, "score": 818.24, "finish": "0/2", "time_s": 0.0, "prog": 1729}
+저장: /Users/ijunsu/Documents/Documents/linefollowing/sim/sweep7_result.json

@@ -1,0 +1,70 @@
+{
+  "wheel_diameter_mm": 56.0,
+  "axle_track_mm": 72.0,
+  "sensor_forward_mm": 170.0,
+  "sensor_pos_mm": [
+    [
+      170.0,
+      37.5
+    ],
+    [
+      90.0,
+      12.5
+    ],
+    [
+      90.0,
+      -12.5
+    ],
+    [
+      170.0,
+      -37.5
+    ]
+  ],
+  "sensor_lag_ms": 15.0,
+  "sensor_spacing_mm": 25.0,
+  "sensor_footprint_mm": 6.4,
+  "line_width_mm": 20.0,
+  "dc_table": [
+    [
+      0,
+      0
+    ],
+    [
+      17.4,
+      0
+    ],
+    [
+      100,
+      1625.8
+    ]
+  ],
+  "motor_tau_s": 0.115,
+  "gear_ratio": 2.0,
+  "battery_scale": 1.0,
+  "sensor_white": [
+    28,
+    26,
+    25,
+    21
+  ],
+  "sensor_black": [
+    2,
+    2,
+    2,
+    1
+  ],
+  "sensor_noise": 1.0,
+  "sensor_hz": 1457.0,
+  "loop_hz": 5302.0,
+  "left_motor_port": "E",
+  "right_motor_port": "F",
+  "sensor_ports": [
+    "A",
+    "C",
+    "B",
+    "D"
+  ],
+  "left_mount_sign": 1,
+  "right_mount_sign": -1,
+  "motor_tau_dn_s": 0.035
+}

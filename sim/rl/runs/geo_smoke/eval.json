@@ -1,0 +1,237 @@
+{
+ "it": 1,
+ "eval": {
+  "hold0": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.433
+  },
+  "hold1": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.522
+  },
+  "hold2": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.598
+  },
+  "hold3": {
+   "fin": 6,
+   "n": 12,
+   "time": 6.13,
+   "frac": 0.805
+  },
+  "hold4": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.217
+  },
+  "hold5": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.311
+  },
+  "hold6": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.405
+  },
+  "hold7": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.187
+  },
+  "hold8": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.459
+  },
+  "hold9": {
+   "fin": 4,
+   "n": 12,
+   "time": 7.32,
+   "frac": 0.573
+  },
+  "hold10": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.706
+  },
+  "hold11": {
+   "fin": 4,
+   "n": 12,
+   "time": 7.38,
+   "frac": 0.557
+  },
+  "hold12": {
+   "fin": 1,
+   "n": 12,
+   "time": 6.74,
+   "frac": 0.568
+  },
+  "hold13": {
+   "fin": 1,
+   "n": 12,
+   "time": 7.57,
+   "frac": 0.578
+  },
+  "hold14": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.354
+  },
+  "hold15": {
+   "fin": 4,
+   "n": 12,
+   "time": 6.93,
+   "frac": 0.758
+  },
+  "photo": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.222
+  },
+  "mrc": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.173
+  },
+  "_holdout": {
+   "fin": 20,
+   "n": 192,
+   "time": 6.88,
+   "frac": 0.502
+  },
+  "_all_finish": 0.093
+ },
+ "rule_eval": {
+  "hold0": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.425
+  },
+  "hold1": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.558
+  },
+  "hold2": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.585
+  },
+  "hold3": {
+   "fin": 6,
+   "n": 12,
+   "time": 6.12,
+   "frac": 0.776
+  },
+  "hold4": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.257
+  },
+  "hold5": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.356
+  },
+  "hold6": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.335
+  },
+  "hold7": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.195
+  },
+  "hold8": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.484
+  },
+  "hold9": {
+   "fin": 3,
+   "n": 12,
+   "time": 7.09,
+   "frac": 0.535
+  },
+  "hold10": {
+   "fin": 1,
+   "n": 12,
+   "time": 7.88,
+   "frac": 0.709
+  },
+  "hold11": {
+   "fin": 3,
+   "n": 12,
+   "time": 7.15,
+   "frac": 0.405
+  },
+  "hold12": {
+   "fin": 1,
+   "n": 12,
+   "time": 6.68,
+   "frac": 0.608
+  },
+  "hold13": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.618
+  },
+  "hold14": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.456
+  },
+  "hold15": {
+   "fin": 3,
+   "n": 12,
+   "time": 7.02,
+   "frac": 0.689
+  },
+  "photo": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.273
+  },
+  "mrc": {
+   "fin": 0,
+   "n": 12,
+   "time": null,
+   "frac": 0.178
+  },
+  "_holdout": {
+   "fin": 17,
+   "n": 192,
+   "time": 6.77,
+   "frac": 0.499
+  },
+  "_all_finish": 0.079
+ }
+}
