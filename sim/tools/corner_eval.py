@@ -23,8 +23,9 @@ def make_src(path, over):
     for k, v in over.items():
         s = EV.setc(s, k, v)
     assert s.count(ANCHOR) == 1
+    cd = "1 if corner_dir else 0" if "corner_dir" in s else "0"     # 최종판(spike_final 등)엔 코너 고정 기능이 없음
     rec = ("        _S = __import__('core').SIM\n"
-           "        REC.append((now, steer, _S._lat_now, 1 if was_off else 0, 1 if corner_dir else 0))\n")
+           "        REC.append((now, steer, _S._lat_now, 1 if was_off else 0, %s))\n" % cd)
     return s.replace(ANCHOR, rec + ANCHOR)
 
 

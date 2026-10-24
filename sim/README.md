@@ -26,7 +26,8 @@ python3 -m venv ~/.venvs/linefollowing && ~/.venvs/linefollowing/bin/pip install
 | `ev3_row3_ref` | `profiles/ev3_row3_ref.json` | `EV3_라인트레이싱_쉬운주석.py` 재현: 컬러 3 일렬 + 모터 4, Pybricks v2 API |
 | `spike_3s_real` | `profiles/spike_3s_real.json` | 2026-10-17 실기 측정 동역학: 기어 1.667, 회전 권한, 구동 지연, 센서 비동기 1,070Hz |
 | `spike_3s_geo` | `profiles/spike_3s_geo.json` | 실측 치수: 3개 일렬 23mm 간격 @170mm, 윤거 205mm, 바퀴 80mm |
-| `spike_3s_geo2` | `profiles/spike_3s_geo2.json` | **지금 기본 평가 모델.** geo + 회전 보정(`yaw_tau_s` 0.05, w_eff 1.5, 실기 블랙박스 5개로 맞춤). 평가할 때 `--weff 1.4,1.6` |
+| `spike_3s_geo2` | `profiles/spike_3s_geo2.json` | **1배 기어 기본 평가 모델.** geo + 회전 보정(`yaw_tau_s` 0.05, w_eff 1.5, 실기 블랙박스 5개로 맞춤). 평가할 때 `--weff 1.4,1.6` |
+| `spike_3s_geo2x` | `profiles/spike_3s_geo2x.json` | **2배 기어 기본 평가 모델.** geo2 + 기어 2배 + 모터·회전 시정수 ×3 (토크 한계). 기어비만 바꾸면 회전이 실기보다 두 배 빨리 붙음 |
 | `ev3_3s_geo` | `profiles/ev3_3s_geo.json` | EV3판 실측 치수: 포트 S1·S3·S2, 모터 A·B / C·D, 자이로 없음 |
 | `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | `profiles/` | 센서 4개 실험: 3개 + D 읽기만 / 4개 일렬(±11.5·±34.5mm) / 3개 + 앞 가운데(195mm) |
 
@@ -259,6 +260,7 @@ python3 sweep_lf3.py --phase validate --configs top.json --out sweep_lf3_validat
 | `tools/ra_trace.py` | 직각 트랙 첫 직각: 센서가 지나친 거리, 재진입 각도 |
 | `tools/stop_test.py` | 정지 버튼 시험: 정지 후 출력량, 프로그램이 붙잡는 시간, 그동안 바퀴가 더 굴러간 거리 |
 | `tools/step_dump.py` | 한 월드의 스텝별 센서·오차·조향·위치 기록 (실패 직전 구간 보기) |
+| `tools/pivot_resp.py` | 제자리 회전 시작 뒤 회전 속도가 붙는 정도: 실기 블랙박스 vs 시뮬 프로파일 (기어·토크 모델 맞추기) |
 | `tools/make4.py`, `make_guard.py`, `make_sent.py` | 센서 4개·원 대책·앞 센티넬 실험 변형을 만들어 `tools/variants/`에 저장 (git 제외) |
 
 ```bash
@@ -271,6 +273,8 @@ python3.13 sim/tools/stop_test.py '[["E8R8", "spike/spike_lf3_rule_e8r8_170.py",
 ```
 
 `--fwd 0`이면 프로파일의 센서 위치를 그대로 쓴다 (센서 4개 프로파일은 반드시 0).
+최종판(`spike/spike_final.py`, `ev3/ev3_final.py`)은 바꿀 값이 마지막 `line_trace(...)` 한 줄에 있어서 `--base`로는
+`VALUE`·`AUTO_STOP`을 못 바꾼다 → 사본에서 그 줄을 고쳐(`VALUE=[34, 6, 22, 3, 21, 3]`, `AUTO_STOP=False`) 평가하고, `RAW_MODE`·`AUTO_CAL`은 `--base`로.
 
 ## 변경 이력
 
@@ -295,4 +299,6 @@ python3.13 sim/tools/stop_test.py '[["E8R8", "spike/spike_lf3_rule_e8r8_170.py",
 - 센서 프레임은 공통 1개(동기)로 모델링 — 실기는 센서별 독립(비동기)·노이즈 더 작음 (위 실측표).
 - EV3 프로파일의 모터·지연·호출비용은 실측 전 임시값.
 - 원(작은 루프)은 1배 `photo`에서 실기보다 훨씬 비관적이다(원이 실기보다 작음). 원 관련 비교는 `photo@1.3`으로 한다.
+- 기어비(`gear_ratio`)만 바꾸면 토크가 줄어드는 효과가 빠진다. 기어를 2배로 올리면 바퀴 토크는 절반, 모터가 느끼는 관성은 4배라 응답이 느려진다 → 2배 기어는 `spike_3s_geo2x`로 평가.
+  `spike_3s_geo2x`의 시정수 ×3은 실기 2배 제자리 회전 1번(`diag_logs/bb_2026-10-24_E8R_2x_short.txt`)에 맞춘 대략값이다.
 - 실기에서 라인 하나가 두 센서 사이에 걸치면 둘 다 30~45%로 읽혀 '가짜 직각 신호'가 생겼는데, 시뮬은 이걸 재현하지 못했다.
