@@ -5,15 +5,15 @@
 #  사용법 (numpy가 로컬에 있는 파이썬으로 — README 참고):
 #    python3 sim/regress.py                    # 골든과 비교
 #    python3 sim/regress.py --capture          # 골든 저장/갱신
-#    python3 sim/regress.py --only v16,geo     # 이름 접두어로 일부만
+#    python3 sim/regress.py --only lf3,curve   # 이름 접두어로 일부만
 #
 #  케이스
-#    v16/w*   : MRC_line_following_v16.py 무수정 실행 (자이로 스핀만 우회)
-#    v14/w*   : MRC_line_following_v14.py 무수정 실행 (자이로 스핀만 우회)
-#    geo/w*   : sweep_geo.GeoController (하이브리드, 기어4, 구간트릭 없음)
-#    v5/main  : controller.V5Controller, main 트랙, 랜덤화 없음
-#    curve    : 센서 응답곡선 (페어 ±12.5 / 일렬 0·±25)
-#  새 케이스(SPIKE 3센서·EV3)는 골든이 없으면 NEW로 표시만 한다.
+#    curve          : 센서 응답곡선 (페어 ±12.5 / 일렬 0·±25)
+#    spike3s_smoke  : SPIKE 3센서 목 스모크 (sim/tests)
+#    ev3_smoke      : EV3 목 스모크 (sim/tests)
+#    lf3_spike·ev3  : 3센서 규칙기반 실기 파일(spike/spike_lf3_rule.py, ev3/ev3_lf3_rule.py) 무수정 실행
+#    lf3_parity     : 같은 물리·입출력에서 SPIKE·EV3 파일 궤적이 같은지 (두 파일 로직 동일성)
+#  새 케이스는 골든이 없으면 NEW로 표시만 한다.
 # =====================================================================
 import argparse
 import collections
@@ -33,7 +33,6 @@ sys.path.insert(0, SIM_DIR)
 import core  # noqa: E402
 
 GOLDEN = os.path.join(SIM_DIR, "regress_golden.json")
-SPIN_BYPASS = ("KG_EFF = KG_S * gyro_sign_check()", "KG_EFF = KG_S")
 
 
 def _digest(trace):
@@ -41,11 +40,22 @@ def _digest(trace):
     return hashlib.sha1(a.tobytes()).hexdigest()[:16]
 
 
+def _randomize_world(base, rng):
+    # 모터 시정수·배터리·센서 노이즈·센서 지연·장착 오차를 무작위로 (골든을 만든 절차 그대로)
+    p = dict(base)
+    p["motor_tau_s"] = base["motor_tau_s"] * rng.uniform(0.85, 1.15)
+    p["battery_scale"] = rng.uniform(0.85, 1.0)
+    p["sensor_noise"] = rng.uniform(0.5, 2.0)
+    p["sensor_lag_ms"] = rng.uniform(10, 25)
+    p["sensor_pos_mm"] = [[f + rng.uniform(-3, 3), l + rng.uniform(-1.5, 1.5)]
+                          for f, l in base["sensor_pos_mm"]]
+    return p
+
+
 def _world(base, k):
-    # 이번 세션 A/B와 같은 절차: rng(1000+k) → 랜덤 월드 → 시작 오프셋
-    from sweep_geo import randomize_world
+    # rng(1000+k) → 랜덤 월드 → 시작 오프셋
     rng = np.random.default_rng(1000 + k)
-    p = randomize_world(base, rng)
+    p = _randomize_world(base, rng)
     return p, float(rng.uniform(-8, 8))
 
 
@@ -98,39 +108,6 @@ def job_file(job):
     return job["key"], out
 
 
-def job_geo(job):
-    from sweep_geo import GEOMETRIES, VALUE, GeoController
-    base = core.load_params()
-    base["gear_ratio"] = 4.0
-    base["sensor_pos_mm"] = GEOMETRIES["hybrid"]["pos"]
-    p, off = _world(base, job["k"])
-    track = core.make_track("mrc", base["line_width_mm"])
-    sim = core.Sim(p, track, start_lateral_mm=off, time_limit_s=60.0,
-                   seed=job["k"])
-    cfg = dict(kp=0.762, kd=10.1, kg=0.258, spd_k=0.80, min_power=77,
-               pre_brake_frames=0, ema_alpha=831, d_filter=351,
-               max_steer_delta=61, gap_limit=4, mem_frames=333,
-               corner_black=36, st_bank=83, recover_power=73)
-    fac = lambda eo: GeoController(VALUE, error_offset=eo, error_mode="inner2",
-                                   zones=(), **cfg)
-    out = dict(core.run_controller(sim, fac))
-    out["trace"] = _digest(sim.trace)
-    out["n_trace"] = len(sim.trace)
-    return job["key"], out
-
-
-def job_v5(job):
-    from controller import V5Controller
-    value = [30, 2, 30, 2, 30, 1, 25, 2]
-    base = core.load_params()
-    track = core.make_track("main", base["line_width_mm"])
-    sim = core.Sim(base, track, start_lateral_mm=0.0, time_limit_s=20.0, seed=0)
-    out = dict(core.run_controller(sim, lambda eo: V5Controller(value, error_offset=eo)))
-    out["trace"] = _digest(sim.trace)
-    out["n_trace"] = len(sim.trace)
-    return job["key"], out
-
-
 def job_curve(job):
     p = core.load_params()
     tr = core.Track(core.build_path([('S', 600)]), p["line_width_mm"])
@@ -147,23 +124,13 @@ def job_curve(job):
 
 
 def jobs():
-    js = []
-    for k in range(6):
-        js.append(dict(key="v16/w%d" % k, fn="file", file="MRC_line_following_v16.py",
-                       subs=[SPIN_BYPASS], track="mrc", k=k))
-    for k in range(3):
-        js.append(dict(key="v14/w%d" % k, fn="file", file="MRC_line_following_v14.py",
-                       subs=[SPIN_BYPASS], track="mrc", k=k))
-    for k in range(3):
-        js.append(dict(key="geo/w%d" % k, fn="geo", k=k))
-    js.append(dict(key="v5/main", fn="v5"))
-    js.append(dict(key="curve", fn="curve"))
+    js = [dict(key="curve", fn="curve")]
     js.extend(extra_jobs())
     return js
 
 
 def extra_jobs():
-    """리팩터 이후 추가된 케이스 (SPIKE 3센서, EV3). 프로파일이 있어야 실행."""
+    """SPIKE 3센서·EV3 케이스. 프로파일이 있어야 실행."""
     if not hasattr(core, "load_profile"):
         return []
     js = []
@@ -174,9 +141,6 @@ def extra_jobs():
         js.append(dict(key="ev3_smoke/w%d" % k, fn="file",
                        file="sim/tests/ev3_smoke.py", profile="ev3_3s",
                        track="mrc", k=k, limit=20.0))
-    js.append(dict(key="ev3_ref/photo", fn="file",
-                   file="EV3_라인트레이싱_쉬운주석.py", profile="ev3_row3_ref",
-                   track="photo", k=0, randomize=False, limit=20.0))
     # 3센서 규칙기반 (2단계) — SPIKE·EV3 각 3월드
     for k in range(3):
         js.append(dict(key="lf3_spike/w%d" % k, fn="file", value_from_profile=True, file="spike/spike_lf3_rule.py",
@@ -202,7 +166,7 @@ EV3_PARITY = {
 }
 
 
-FN = {"file": job_file, "geo": job_geo, "v5": job_v5, "curve": job_curve}
+FN = {"file": job_file, "curve": job_curve}
 
 
 def run_job(job):

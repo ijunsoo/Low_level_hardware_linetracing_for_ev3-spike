@@ -2,11 +2,10 @@
 #  실기 코드를 '수정 없이' 시뮬레이터에서 실행하고 결과를 그림으로 저장.
 #
 #  사용법:
-#    python3 sim/run_sim.py                        # ../MRC_line_following.py 실행
-#    python3 sim/run_sim.py 파일.py --track hard   # 다른 파일/트랙
-#    python3 sim/run_sim.py ev3파일.py --profile ev3_3s --track photo
-#    python3 sim/run_sim.py MRC_line_following_v16.py \
-#        --sub "KG_EFF = KG_S * gyro_sign_check()=>KG_EFF = KG_S"   # 소스 치환
+#    python3 sim/run_sim.py spike/spike_lf3_rule.py --profile spike_3s_geo2 --track photo
+#    python3 sim/run_sim.py ev3/ev3_lf3_rule.py --profile ev3_3s_geo --track hard
+#    python3 sim/run_sim.py 파일.py --profile spike_3s_geo2 \
+#        --sub "RAW_MODE = True=>RAW_MODE = False"   # 소스 치환 (시뮬 센서 목은 반사 모드만)
 #    python3 sim/run_sim.py --list                 # 프로파일·트랙 목록
 # =====================================================================
 import argparse
@@ -20,11 +19,10 @@ import core   # noqa: E402
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("target", nargs="?",
-                    default=os.path.join(core.PKG_DIR, "..", "MRC_line_following.py"))
+    ap.add_argument("target", nargs="?", default=None, help="실행할 실기 파일 (예: spike/spike_lf3_rule.py)")
     ap.add_argument("--track", default="mrc", choices=core.track_names())
     ap.add_argument("--profile", default=None,
-                    help="하드웨어 프로파일 (spike_4s, spike_3s, ev3_3s, ev3_row3_ref ...)")
+                    help="하드웨어 프로파일 (spike_3s_geo2, spike_3s_geo2x, ev3_3s_geo ... — --list로 전체)")
     ap.add_argument("--params", default=None, help="robot_params.json 경로 (프로파일 대신)")
     ap.add_argument("--sub", action="append", default=[],
                     help="소스 치환 'OLD=>NEW' (여러 번 가능, 실기 파일은 안 바뀜)")
@@ -35,6 +33,8 @@ def main():
     ap.add_argument("--no-plot", action="store_true")
     ap.add_argument("--list", action="store_true", help="프로파일·트랙 목록")
     args = ap.parse_args()
+    if not args.list and not args.target:
+        ap.error("실행할 실기 파일을 주세요 (예: spike/spike_lf3_rule.py --profile spike_3s_geo2)")
 
     if args.list:
         print("프로파일:", ", ".join(core.list_profiles()))

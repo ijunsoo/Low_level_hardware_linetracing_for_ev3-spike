@@ -1,16 +1,15 @@
 # =====================================================================
-#  3센서 배치 스윕 + 4센서 기준선(v11·v12·v16) 비교
+#  3센서 배치·상수 스윕 (실기 파일을 그대로 실행)
 #
 #  공정 비교 원칙
 #   - 모든 셀은 '실기 파일 그대로' 실행 (튜닝값은 소스의 상수 줄만 치환)
 #   - 셀마다 같은 탐색 예산 (기본값 1 + 국소 15 + 전역 16)
 #   - 같은 월드(모터·배터리·노이즈·센서지연·장착오차·시작오프셋)와 같은 트랙
-#   - 4센서 기준선은 현재 배선·현재 VALUE로 맞춤 (센서 위치 의미는 그대로)
 #
 #  사용법 (sim/ 기준, numpy 로컬 파이썬):
 #    python3 sim/sweep_lf3.py --phase screen          # 셀×32설정×(2월드×2트랙)
 #    python3 sim/sweep_lf3.py --phase validate        # 셀별 기본값+상위3 → 12월드×2트랙
-#    python3 sim/sweep_lf3.py --phase screen --cells pf130,v16 --n 8   # 일부만
+#    python3 sim/sweep_lf3.py --phase screen --cells pf130,row3 --n 8   # 일부만
 # =====================================================================
 import argparse
 import contextlib
@@ -30,8 +29,6 @@ ROOT = os.path.dirname(SIM_DIR)
 sys.path.insert(0, SIM_DIR)
 import core  # noqa: E402
 
-VALUE4_NOW = "[28, 2, 26, 2, 25, 2, 21, 1]"     # 현재 실기 VALUE (robot_params 흰/검과 일치)
-SPIN = ("KG_EFF = KG_S * gyro_sign_check()", "KG_EFF = KG_S")
 TRACKS = {"mrc": 50.0, "photo": 30.0}          # 트랙: 제한시간(s) — validate는 이 둘
 TRACK_LIMITS = dict(TRACKS, rightangle=20.0)     # run_one이 아는 모든 트랙
 STUCK_S = 5.0                                   # 이 시간 동안 최대진행이 50mm도 안 늘면 중단
@@ -48,31 +45,6 @@ LF3_SPACE = [
     ("SPD_K10", 0, 12, "i"), ("MIN_POWER", 30, 100, "i"),
     ("PB_MS", [0, 100, 210, 350], None, "c"), ("PB_POWER", 20, 70, "i"),
 ]
-V16_SPACE = [
-    ("kp", 0.08, 0.9, "lf"), ("kd", 0.0, 20.0, "f"), ("KG_S", 50, 600, "i"),
-    ("G_CLAMP", 20, 80, "i"), ("ALPHA", 500, 950, "i"), ("D_FILTER", 150, 600, "i"),
-    ("MAX_STEER_DELTA", 20, 100, "i"), ("GAP_LIMIT", 1, 20, "i"), ("MEM_FRAMES", 100, 700, "i"),
-    ("CORNER_BLACK", 15, 45, "i"), ("W_NORM", 75, 92, "i"),
-    ("ST_BANK", 50, 100, "i"), ("RECOVER_POWER", 30, 100, "i"),
-    ("SPD_K10", 0, 12, "i"), ("MIN_POWER", 30, 100, "i"),
-    ("PB_FRAMES", [0, 150, 300, 500], None, "c"), ("PB_POWER", 20, 70, "i"),
-]
-V12_SPACE = [s for s in V16_SPACE if s[0] not in ("G_CLAMP", "PB_FRAMES", "PB_POWER")]
-V11_SPACE = [
-    ("kp", 0.15, 1.5, "lf"), ("kd", 0.0, 15.0, "f"), ("st", 50, 100, "i"),
-    ("KG_S", 0, 450, "i"), ("w_offset", 3, 15, "i"), ("ALPHA", 400, 950, "i"),
-    ("MAX_STEER_DELTA", 10, 80, "i"), ("CORNER_ON", ["True", "False"], None, "c"),
-    ("C_WHITE", 50, 400, "i"), ("C_TURN_ST", 70, 100, "i"),
-]
-
-# 호출 인자(함수 호출 줄) 템플릿 — 파일 안 원래 호출을 통째로 바꿈
-CALLS = {
-    "v16": ("pid_control(100, 0.268, 6.2, value)", "pid_control(100, {kp}, {kd}, value)"),
-    "v12": ("pid_control(100, 0.762, 10.1, value)", "pid_control(100, {kp}, {kd}, value)"),
-    "v11": ("pid_control(100, 0.00001 ,66, 0.65, 0, 2.22, value, w_offset)",
-            "pid_control(100, 0.00001, {st}, {kp}, 0, {kd}, value, w_offset)"),
-}
-
 
 def _pf(pos):
     # 3센서 기하: 포트 순서(C=페어좌, B=페어우, A=센티넬)
@@ -97,17 +69,10 @@ CELLS = {
     "row3_110": dict(kind="lf3", over=_pf([[110, 25], [110, -25], [110, 0]])),
     # 강화학습 잔차 정책 실기 파일 (rl/export_policy.py가 생성) — 일렬 배치
     "rl_row3": dict(kind="lf3rl", over=_pf([[90, 25], [90, -25], [90, 0]])),
-    # ---- 4센서 기준선 (spike_4s = 현재 실기 기하: 안쪽 90 / 바깥 170) ----
-    "v16": dict(kind="v16"),
-    "v12": dict(kind="v12"),
-    "v11": dict(kind="v11"),
-    "v14": dict(kind="v14"),         # 마지막 실기 검증판 — 기본값만 (튜닝 안 함)
 }
 
-SPACES = {"lf3": LF3_SPACE, "v16": V16_SPACE, "v12": V12_SPACE, "v11": V11_SPACE, "v14": [], "lf3rl": []}
-FILES = {"lf3": "spike/spike_lf3_rule.py", "v16": "MRC_line_following_v16.py",
-         "v12": "MRC_line_following_v12.py", "v11": "MRC_line_following_v11.py",
-         "v14": "MRC_line_following_v14.py", "lf3rl": "spike/spike_lf3_rl.py"}
+SPACES = {"lf3": LF3_SPACE, "lf3rl": []}
+FILES = {"lf3": "spike/spike_lf3_rule.py", "lf3rl": "spike/spike_lf3_rl.py"}
 
 
 # ------------------------- 소스 준비 ------------------------- #
@@ -150,45 +115,10 @@ def build_source(cell_name, cfg, params):
             src = src.replace(POLICY_ANCHOR, "            __import__('core').SIM.wait_ms(%r)\n"
                               % (pus / 1000.0) + POLICY_ANCHOR)
         return src
-    # ---- 4센서 기준선 ----
-    src = re.sub(r"^value = \[[^\]]*\]", "value = " + VALUE4_NOW, src, count=1, flags=re.M)
-    if kind in ("v16", "v14"):
-        src = src.replace(*SPIN)
-    if kind == "v11":   # 예전 배선(B/F, A/C/E/D) → 현재 배선(E/F, A/C/B/D). 위치 의미 동일
-        for a, b in (("lm = Motor(Port.B, Direction.COUNTERCLOCKWISE)", "lm = Motor(Port.E)"),
-                     ("rm = Motor(Port.F)\n", "rm = Motor(Port.F, Direction.COUNTERCLOCKWISE)\n"),
-                     ("c3 = PUPDevice(Port.E)", "c3 = PUPDevice(Port.B)")):
-            assert a in src, a
-            src = src.replace(a, b, 1)
-    call_args = {}
-    for k, v in cfg.items():
-        if k in ("kp", "kd", "st"):
-            call_args[k] = v
-        elif k == "ALPHA" and kind == "v11":          # v11은 A_COMP가 상수 300
-            src = _set_const(src, "ALPHA", v)
-            src = _set_const(src, "A_COMP", 1000 - int(v))
-        else:
-            src = _set_const(src, k, v)
-    if call_args and kind in CALLS:
-        old, tmpl = CALLS[kind]
-        defaults = DEFAULTS[kind]
-        args = {k: call_args.get(k, defaults[k]) for k in ("kp", "kd", "st") if k in defaults}
-        assert old in src, old
-        src = src.replace(old, tmpl.format(**args))
-    return src
+    raise ValueError("알 수 없는 셀 종류: %s" % kind)
 
-
-DEFAULTS = {   # 파일 기본값 (호출 인자 포함) — 국소 탐색 중심
+DEFAULTS = {   # 파일 기본값 — 국소 탐색 중심
     "lf3": None,  # 파일에서 읽음
-    "v16": dict(kp=0.268, kd=6.2, KG_S=200, G_CLAMP=40, ALPHA=831, D_FILTER=351,
-                MAX_STEER_DELTA=61, GAP_LIMIT=4, MEM_FRAMES=400, CORNER_BLACK=36, W_NORM=82,
-                ST_BANK=65, RECOVER_POWER=64, SPD_K10=8, MIN_POWER=70, PB_FRAMES=300, PB_POWER=35),
-    "v12": dict(kp=0.762, kd=10.1, KG_S=258, ALPHA=831, D_FILTER=351, MAX_STEER_DELTA=61,
-                GAP_LIMIT=4, MEM_FRAMES=333, CORNER_BLACK=36, W_NORM=82, ST_BANK=83,
-                RECOVER_POWER=73, SPD_K10=8, MIN_POWER=77),
-    "v11": dict(kp=0.65, kd=2.22, st=66, KG_S=100, w_offset=5, ALPHA=700, MAX_STEER_DELTA=15,
-                CORNER_ON="True", C_WHITE=220, C_TURN_ST=95),
-    "v14": {},
     "lf3rl": {},
 }
 
@@ -262,7 +192,7 @@ def cell_params(cell_name, profile=None):
             p["sensor_white"] = [int(round(b + (w - b) * c))
                                  for w, b in zip(p["sensor_white"], p["sensor_black"])]
         return p
-    return core.load_profile("spike_4s")
+    raise ValueError("알 수 없는 셀 종류: %s" % cell["kind"])
 
 
 class StuckSim(core.Sim):
@@ -410,7 +340,7 @@ def main():
         rng = np.random.default_rng(args.seed)
         tasks = []
         for cell in cells:
-            for cfg in sample_configs(cell, args.n if CELLS[cell]["kind"] != "v14" else 1, rng):
+            for cfg in sample_configs(cell, args.n, rng):
                 for tr in TRACKS:
                     for k in (100, 101):          # 스크리닝 월드 (검증 월드 0..11과 분리)
                         tasks.append((cell, cfg, tr, k))

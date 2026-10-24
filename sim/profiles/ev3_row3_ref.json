@@ -1,9 +1,0 @@
-{
-  "_note": "EV3_라인트레이싱_쉬운주석.py(참고 파일) 재현: EV3 + 컬러 3 일렬(S1 좌, S2 중, S3 우) + 모터 4, 자이로 없음, Pybricks v2(ev3dev) API. 센서 전방거리는 미상(임시 70mm), 흰/검은 파일의 reflect_list",
-  "extends": "ev3_3s",
-  "pybricks_api": "v2",
-  "sensor_pos_mm": [[70.0, 25.0], [70.0, 0.0], [70.0, -25.0]],
-  "sensor_white": [49, 62, 64],
-  "sensor_black": [3, 6, 5],
-  "gyro": {"source": "none"}
-}

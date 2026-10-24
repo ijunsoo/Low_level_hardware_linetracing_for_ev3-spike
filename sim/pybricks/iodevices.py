@@ -15,3 +15,7 @@ class PUPDevice:
 
     def info(self):
         return {"id": 29}   # EV3 color sensor
+
+
+# EV3(Pybricks v4)의 LUMPDevice = SPIKE의 PUPDevice와 같은 클래스 (센서 모드를 직접 골라 읽음)
+LUMPDevice = PUPDevice

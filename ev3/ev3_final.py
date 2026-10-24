@@ -2,12 +2,17 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, ColorSensor
 from pybricks.parameters import Port, Direction, Color
 from pybricks.tools import wait, StopWatch
+try:
+    from pybricks.iodevices import LUMPDevice   # 센서 모드를 직접 골라 읽음 (빨간 불 반사광)
+except ImportError:
+    LUMPDevice = None
 
 # =============================================================
 #  EV3 3센서 라인트레이서 — 최종판 (2026-10-24, E8R8과 같은 동작) · Pybricks v4
 #
 #  사용법
-#   1) ev3/ev3_value.py로 빛값을 재고, 맨 아래 line_trace(...) 줄의 VALUE에 붙여 넣는다
+#   1) ev3/ev3_value.py로 빛값을 재서, 나온 VALUE 줄을 맨 아래 line_trace(...)의 VALUE에 붙여 넣는다
+#      (빨간 불로 달릴 땐 두 파일 다 RED_LIGHT = True: ev3_value.py가 주는 VALUE_RED·VALUE0 줄을 고급 설정에)
 #   2) 로봇을 라인 위에 놓고(가운데 센서는 라인 위, 좌우 센서는 흰 바닥) 실행 → 센서가 준비되면 바로 출발
 #   3) 브릭 화면: START · PORT WAIT(장치 연결 다시 시도) · SENSOR CHECK · WAIT(주황 불, 센서 기다림) · READY
 #      · ERROR(빨간 불) · LOG...(기록 출력 중) → DONE
@@ -16,11 +21,18 @@ from pybricks.tools import wait, StopWatch
 #      (python3 sim/bb_parse.py 로그.txt 로 해석). 대회 땐 AUTO_STOP=False
 #  배선: 컬러센서 S1 좌 · S2 가운데 · S3 우 (일렬 23mm 간격, 바퀴축 앞 17cm) / 모터 A·B 좌 · C·D 우
 #  자이로 없이 좌우 모터 각도 차로 회전 속도를 잰다 (YAW_ENC_K)
+#  센서: 기본은 RGB 반사광 — ColorSensor.reflection()은 Pybricks 4.1부터 빨강·초록·파랑 세 색으로 잰 반사광의
+#   평균이다(그래서 컬러빛이 깜빡임). 실기(2026-10-24)에서 빨간 불 반사광보다 라인을 잘 따라가서 기본으로 쓴다.
+#   RED_LIGHT = True면 SPIKE 최종판처럼 빨간 불 반사광 (LUMPDevice raw 모드 3, 안 되면 반사광 % 모드 0)
 #  모든 회전은 파워 100 그대로 조향만으로 한다 (예외: 긴 직선 끝 직각에서 50ms 브레이크)
 #  만든 과정·실험 기록: README.md, github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike
 # =============================================================
 
 # ======= 고급 설정 (실험으로 맞춘 값 — 보통은 그대로. 바꿀 값은 맨 아래 한 줄) ======= #
+RED_LIGHT = False       # 센서 빛: False = RGB 반사광(기본, 실기에서 더 잘 달림) / True = 빨간 불 반사광 → 아래 세 줄을 씀
+VALUE_RED = [87, 17, 121, 21, 121, 19]  # 빨간 불 raw 빛값 (EV3 실측 2026-10-24) — RED_LIGHT = True면 맨 아래 VALUE 대신 씀
+RAW_MODE = True         # 빨간 불: raw 모드 3 (% 반사광보다 값이 약 3배 촘촘). False면 반사광 %(모드 0)와 VALUE0
+VALUE0 = [22, 2, 22, 2, 37, 4]  # 빨간 불 반사광 %(모드 0) 빛값 — raw가 3초 넘게 0만 줄 때도 이걸로 바꿔 씀 (지금은 SPIKE 임시값)
 AUTO_CAL = True         # 출발 자세(가운데 = 라인, 좌우 = 흰 바닥)에서 흰색을 다시 재서 VALUE 보정
 KG2 = 216               # 곡선에서 흔들림 잡기 (-1 = KG 그대로)
 G_CLAMP = 71            # 회전 감쇠가 조향에 더할 수 있는 최대값
@@ -79,9 +91,15 @@ def dev(make, port, *a):
 LM = (dev(Motor, Port.A), dev(Motor, Port.B))     # 좌 모터 2개 (정방향 = 전진)
 RM = (dev(Motor, Port.C, Direction.COUNTERCLOCKWISE), dev(Motor, Port.D, Direction.COUNTERCLOCKWISE))   # 우 모터 2개 (역방향 = 전진)
 # ↑ 출발하자마자 제자리에서 돌거나 뒤로 가면 그쪽 모터의 Direction을 반대로 바꿀 것
-cL = dev(ColorSensor, Port.S1)      # 좌 센서
-cF = dev(ColorSensor, Port.S2)      # 가운데 센서
-cR = dev(ColorSensor, Port.S3)      # 우 센서
+RED = RED_LIGHT and LUMPDevice is not None     # 빨간 불로 읽나 (펌웨어에 LUMPDevice가 없으면 RGB로)
+if RED:                             # 빨간 불 반사광: 센서 모드를 직접 골라 읽음
+    cL = dev(LUMPDevice, Port.S1)   # 좌 센서
+    cF = dev(LUMPDevice, Port.S2)   # 가운데 센서
+    cR = dev(LUMPDevice, Port.S3)   # 우 센서
+else:                               # RGB 반사광: ColorSensor.reflection()
+    cL = dev(ColorSensor, Port.S1)
+    cF = dev(ColorSensor, Port.S2)
+    cR = dev(ColorSensor, Port.S3)
 
 # =============================== 함수 =============================== #
 BRK_CMD = [0, 0]        # 브레이크 중 [왼쪽, 오른쪽] 파워 (둘 다 0이면 평소 조향)
@@ -133,6 +151,7 @@ def yaw_rate():
 
 
 STAT = [0, 0]           # [제어 횟수, 블랙박스 기록 수]
+RUN_VAL = [None, 0]     # 실제로 쓴 빛값, 블랙박스에 줄여 적은 비트 수 (블랙박스 머리줄용)
 LOG = bytearray(LOG_N * 7)   # 블랙박스 [센서 좌·우·가운데, 조향+128, 파워, 상태, 회전속도/8+128]
 
 
@@ -141,7 +160,28 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
     KP_S = round(KP * S)
     KP2_S = round(KP2 * S)
     A_COMP = 1000 - ALPHA
-    wL, bL, wR, bR, wF, bF = VALUE
+    if RED:
+        rdL, rdR, rdF = cL.read, cR.read, cF.read
+        md = 3 if RAW_MODE else 0                   # 3 = 빨간 불 raw, 0 = 빨간 불 반사광 %
+        RUN_VAL[0] = VALUE_RED if RAW_MODE else VALUE0
+    else:
+        md = -1                                     # −1 = RGB 반사광 (ColorSensor.reflection)
+        RUN_VAL[0] = VALUE
+        if RED_LIGHT:
+            print("LUMPDevice 없음 → RGB 반사광으로 읽음 (맨 아래 VALUE 사용)")
+    wL, bL, wR, bR, wF, bF = RUN_VAL[0]
+    sh = 2 if md == 3 else 0                       # 블랙박스에는 raw ÷4로 기록
+    RUN_VAL[1] = sh
+
+    def rd3():
+        if md < 0:
+            return int(cL.reflection()), int(cR.reflection()), int(cF.reflection())
+        if md:
+            a = rdL(3)
+            b = rdR(3)
+            c = rdF(3)
+            return abs(a[0] - a[1]), abs(b[0] - b[1]), abs(c[0] - c[1])
+        return rdL(0)[0], rdR(0)[0], rdF(0)[0]
 
     # ---- 출발 대기: 센서가 0만 읽히는 동안은 출발하지 않음 (화면 WAIT + 주황 불) ---- #
     print("출발 준비: 센서 확인 중")
@@ -151,7 +191,7 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
     t_msg = 0
     while True:
         try:
-            a, b, c = (int(cL.reflection()), int(cR.reflection()), int(cF.reflection()))
+            a, b, c = rd3()
         except OSError:                             # 센서 재시작 중 읽기 오류 → 0으로 보고 계속 기다림
             a = b = c = 0
         if a + b > 4:                               # 좌우 센서가 바닥 값을 읽으면 준비됨
@@ -165,23 +205,37 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
             show("WAIT", a, b, c)
             if tt >= 1000:                          # 모드를 한 번 바꿨다 돌려 센서를 깨움
                 try:
-                    cL.ambient()
-                    cR.ambient()
-                    cF.ambient()
+                    if md < 0:
+                        cL.ambient()
+                        cR.ambient()
+                        cF.ambient()
+                    elif md:
+                        rdL(0)
+                        rdR(0)
+                        rdF(0)
                 except OSError:
                     pass
+            if md > 0 and tt >= 3000:               # 빨간 불 raw가 계속 0 → 반사광 %(모드 0)로 바꿔 달림
+                md = 0
+                sh = 0
+                RUN_VAL[0] = VALUE0
+                RUN_VAL[1] = 0
+                wL, bL, wR, bR, wF, bF = VALUE0
+                print("raw 모드 응답 없음 → 반사광 %(모드 0)로 전환 (VALUE0)")
             t_msg += 1000
         wait(10)
     if waited:
         wait(100)                                   # 첫 값 직후의 오래된 값 버림
-    print("센서 준비됨: 좌", a, "우", b, "가운데", c)
+    print("센서 준비됨: 좌", a, "우", b, "가운데", c,
+          "(RGB 반사광)" if md < 0 else ("(빨간 불 raw)" if md else "(빨간 불 반사광 %)"))
     show("READY", a, b, c)
     if AUTO_CAL:                                    # 출발 자세에서 흰색 다시 재기
         tL = tR = tF = 0
         for _ in range(20):
-            tL += int(cL.reflection())
-            tR += int(cR.reflection())
-            tF += int(cF.reflection())
+            a, b, c = rd3()
+            tL += a
+            tR += b
+            tF += c
             wait(5)
         mL, mR, mF = tL // 20, tR // 20, tF // 20
         if mL - bL > 8 and mR - bR > 8 and 2 * (mL - bL) > wL - bL and 2 * (mR - bR) > wR - bR:
@@ -195,9 +249,7 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
             print("자동보정 안 함 (좌우 센서를 흰 바닥에 두고 출발할 것) — VALUE 그대로")
     gL, gR, gF = wL - bL, wR - bR, wF - bF
 
-    pL = int(cL.reflection())
-    pR = int(cR.reflection())
-    pF = int(cF.reflection())
+    pL, pR, pF = rd3()
     sL = (min(max(pL, bL), wL) - bL) * 100 // gL
     sR = (min(max(pR, bR), wR) - bR) * 100 // gR
     sF = (min(max(pF, bF), wF) - bF) * 100 // gF
@@ -230,9 +282,21 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
 
     while True:
         # ---- 센서 읽기 ---- #
-        rL = int(cL.reflection())
-        rR = int(cR.reflection())
-        rF = int(cF.reflection())
+        if md < 0:                                  # RGB 반사광
+            rL = int(cL.reflection())
+            rR = int(cR.reflection())
+            rF = int(cF.reflection())
+        elif md:                                    # 빨간 불 raw: 두 값의 차
+            a = rdL(3)
+            rL = a[0] - a[1] if a[0] > a[1] else a[1] - a[0]
+            a = rdR(3)
+            rR = a[0] - a[1] if a[0] > a[1] else a[1] - a[0]
+            a = rdF(3)
+            rF = a[0] - a[1] if a[0] > a[1] else a[1] - a[0]
+        else:                                       # 빨간 불 반사광 %
+            rL = rdL(0)[0]
+            rR = rdR(0)[0]
+            rF = rdF(0)[0]
         now = sw.time()
         if rL == pL and rR == pR and rF == pF and now - t_step < FORCE_MS:
             continue                                # 새 센서 값이 올 때만 제어
@@ -404,9 +468,12 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
         if now - t_log >= LOG_MS:                   # 블랙박스 기록
             t_log = now
             j = li % LOG_N * 7
-            LOG[j] = rL if rL < 255 else 255
-            LOG[j + 1] = rR if rR < 255 else 255
-            LOG[j + 2] = rF if rF < 255 else 255
+            x = rL >> sh
+            LOG[j] = x if x < 255 else 255
+            x = rR >> sh
+            LOG[j + 1] = x if x < 255 else 255
+            x = rF >> sh
+            LOG[j + 2] = x if x < 255 else 255
             v = steer + 128
             LOG[j + 3] = 0 if v < 0 else (255 if v > 255 else v)
             LOG[j + 4] = power if 0 <= power <= 255 else 0
@@ -449,7 +516,7 @@ def line_trace(VALUE, YAW_ENC_K, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YA
                 show("LOG...")                      # 화면 LOG... = 기록 출력 중 = 아직 실행 중
             n = STAT[1]                             # 블랙박스: 정지 직전 2초 (sim/bb_parse.py로 해석)
             m = n if n < LOG_N else LOG_N
-            print("BB,%d,%d,7,%s,new" % (LOG_MS, m, ",".join(str(x) for x in VALUE)))
+            print("BB,%d,%d,7,%s,new" % (LOG_MS, m, ",".join(str(x >> RUN_VAL[1]) for x in (RUN_VAL[0] or VALUE))))
             hx = "0123456789abcdef"
             s = ""
             for k in range(n - 1, n - 1 - m, -1):   # 최신 → 과거: 출력이 도중에 끊겨도 정지 직전이 남음
@@ -469,7 +536,8 @@ def line_trace(VALUE, YAW_ENC_K, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YA
 
 
 # ===================== ★ 맨 아래 한 줄만 바꾸세요 ★ ===================== #
-#  VALUE        빛값 [흰, 검] × (좌, 우, 가운데) — ev3_value.py로 재서 붙여 넣기
+#  VALUE        빛값 [흰, 검] × (좌, 우, 가운데) — ev3_value.py로 재서 나온 VALUE 줄(RGB 반사광 %)을 붙여 넣기
+#               (고급 설정 RED_LIGHT = True면 이 값 대신 VALUE_RED·VALUE0을 씀)
 #  YAW_ENC_K    모터 각도 → 몸 회전 환산. 기어 20:12 그대로면 245, 기어를 2배로 올렸으면 490
 #  POWER        속도 (0~100). 기본 100. 낮추면 회전도 같이 약해진다
 #  KP           직선에서 조향 세기. 크면 라인을 세게 쫓고(흔들림↑), 작으면 부드럽지만 늦게 쫓는다

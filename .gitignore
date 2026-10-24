@@ -8,3 +8,6 @@ __pycache__/
 
 # sim/tools/make_*.py가 만드는 시뮬 실험 변형 (언제든 다시 만들 수 있음)
 sim/tools/variants/
+
+# 예전 파일 보관함 (로컬에만, GitHub에는 안 올림)
+_archive/
