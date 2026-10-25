@@ -102,7 +102,10 @@ def main():
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        plt.rcParams["font.family"] = "AppleGothic"
+        from matplotlib import font_manager
+        have = {f.name for f in font_manager.fontManager.ttflist}    # 한글 글꼴: macOS · Windows · Linux 순
+        plt.rcParams["font.family"] = next((f for f in ("AppleGothic", "Malgun Gothic", "NanumGothic", "Noto Sans CJK KR")
+                                            if f in have), plt.rcParams["font.family"])
         plt.rcParams["axes.unicode_minus"] = False
         x0, y0, x1, y1 = (float(v) for v in args.box.split(","))
         show = res[:8]

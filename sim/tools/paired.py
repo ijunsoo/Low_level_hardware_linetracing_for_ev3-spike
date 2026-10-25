@@ -6,7 +6,7 @@ import sys
 
 def load(spec):
     path, name = spec.split(":", 1)
-    rows = [r for r in json.load(open(path)) if r[0] == name]
+    rows = [r for r in json.load(open(path, encoding="utf-8")) if r[0] == name]
     return name, {(r[1], r[6]): r for r in rows}
 
 

@@ -289,7 +289,7 @@ def main():
     if args.sim:
         text = run_in_sim(args.sim, args.diag)
         if args.save_sim_log:
-            open(args.save_sim_log, "w").write(text)
+            open(args.save_sim_log, "w", encoding="utf-8").write(text)
         sim = report(parse(text), "시뮬 %s" % args.sim)
     if real and sim:
         print("\n== 실기 vs 시뮬 ==")

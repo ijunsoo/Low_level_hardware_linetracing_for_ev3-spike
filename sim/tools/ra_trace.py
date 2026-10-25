@@ -93,7 +93,7 @@ def main():
     ap.add_argument("--png", default=None)
     args = ap.parse_args()
     v = args.variants
-    variants = json.load(open(v)) if os.path.exists(v) else json.loads(v)
+    variants = json.load(open(v, encoding="utf-8")) if os.path.exists(v) else json.loads(v)
     a = dict(profile=args.profile, fwd=args.fwd, prof=json.loads(args.prof) if args.prof else None, lost=args.lost,
              noise=[0.3, 1.0], lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=[1.15, 1.5], wob=[0.005, 0.035])
     jobs = [(nm, make_src(os.path.join(ROOT, args.src), over), k, a) for nm, over in variants for k in range(args.worlds)]
@@ -110,7 +110,10 @@ def main():
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        plt.rcParams["font.family"] = "AppleGothic"
+        from matplotlib import font_manager
+        have = {f.name for f in font_manager.fontManager.ttflist}    # 한글 글꼴: macOS · Windows · Linux 순
+        plt.rcParams["font.family"] = next((f for f in ("AppleGothic", "Malgun Gothic", "NanumGothic", "Noto Sans CJK KR")
+                                            if f in have), plt.rcParams["font.family"])
         plt.rcParams["axes.unicode_minus"] = False
         n = len(variants)
         fig, axes = plt.subplots(1, n, figsize=(5.2 * n, 5.2), squeeze=False)

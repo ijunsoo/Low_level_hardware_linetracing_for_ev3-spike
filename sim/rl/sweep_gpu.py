@@ -241,26 +241,26 @@ def main():
     best = {}
     vpath = os.path.join(_SIM_DIR, "sweep_lf3_validate.json")
     if os.path.exists(vpath):                       # core 검증 최고값을 국소 탐색 중심으로
-        summ = SL.summarize(json.load(open(vpath)))
+        summ = SL.summarize(json.load(open(vpath, encoding="utf-8")))
         for lay in LAYOUTS:
             sub = sorted([s for s in summ if s["cell"] == lay and s["cfg"]], key=lambda s: s["score"])
             if sub:
                 best[lay] = sub[0]["cfg"]
     layouts = args.layouts.split(",")
     if args.center:
-        c = json.load(open(args.center))
+        c = json.load(open(args.center, encoding="utf-8"))
         best = {lay: c for lay in layouts}
     if args.worlds.count(":") == 1:                       # a:b = range(a, b)
         a, b = args.worlds.split(":")
         worlds = list(range(int(a), int(b)))
     else:
         worlds = [int(k) for k in args.worlds.split(",")]
-    given = json.load(open(args.configs)) if args.configs else None
+    given = json.load(open(args.configs, encoding="utf-8")) if args.configs else None
     rows, names = run(layouts, args.n, worlds, args.device, args.seed, best,
                       lag=tuple(float(x) for x in args.lag.split(",")),
                       noise=tuple(float(x) for x in args.noise.split(",")),
                       fixed=NO_SLOW if args.no_slow else None, given=given)
-    json.dump(rows, open(args.out, "w"), ensure_ascii=False)
+    json.dump(rows, open(args.out, "w", encoding="utf-8"), ensure_ascii=False)
     summ = summarize(rows, names)
 
     def key(s):
@@ -272,7 +272,7 @@ def main():
         tops = []
         for lay in layouts:
             tops += [s["cfg"] for s in sorted([s for s in summ if s["cell"] == lay], key=key)[:args.top]]
-        json.dump(tops, open(args.top_out, "w"), ensure_ascii=False)
+        json.dump(tops, open(args.top_out, "w", encoding="utf-8"), ensure_ascii=False)
     print("\n=== 배치별 상위 %d (%s, 완주/런) ===" % (args.top, "완주 우선" if args.rank == "finish" else "점수 낮을수록 좋음"))
     for lay in layouts:
         sub = sorted([s for s in summ if s["cell"] == lay], key=key)[:args.top]

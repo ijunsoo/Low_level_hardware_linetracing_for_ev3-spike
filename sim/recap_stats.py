@@ -155,7 +155,7 @@ def main():
             print("실기 %s\n  %s" % (os.path.basename(f), summary(from_bb(f))))
     if args.variants:
         v = args.variants
-        variants = json.load(open(v)) if os.path.exists(v) else json.loads(v)
+        variants = json.load(open(v, encoding="utf-8")) if os.path.exists(v) else json.loads(v)
         a = dict(worlds=args.worlds, tracks=args.tracks.split(","), profile=args.profile, fwd=args.fwd, src=args.src,
                  noise=EV.rng2(args.noise), lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=EV.rng2(args.weff),
                  wob=[0.005, 0.035], prof=json.loads(args.prof) if args.prof else None)

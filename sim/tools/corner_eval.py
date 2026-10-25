@@ -73,7 +73,7 @@ def main():
     ap.add_argument("--dump", default=None, help="월드별 결과 JSON 저장 경로")
     args = ap.parse_args()
     v = args.variants
-    variants = json.load(open(v)) if os.path.exists(v) else json.loads(v)
+    variants = json.load(open(v, encoding="utf-8")) if os.path.exists(v) else json.loads(v)
     a = dict(profile=args.profile, fwd=args.fwd, prof=json.loads(args.prof) if args.prof else None, lost=args.lost,
              noise=EV.rng2(args.noise), lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=EV.rng2(args.weff), wob=[0.005, 0.035])
     tracks = args.tracks.split(",")
@@ -83,7 +83,7 @@ def main():
     with mp.Pool(max(1, os.cpu_count() - 1)) as pool:
         res = pool.map(one, jobs, chunksize=2)
     if args.dump:
-        json.dump([[r[0], r[1], r[2], r[3], r[4], r[5], j[3]] for r, j in zip(res, jobs)], open(args.dump, "w"))
+        json.dump([[r[0], r[1], r[2], r[3], r[4], r[5], j[3]] for r, j in zip(res, jobs)], open(args.dump, "w", encoding="utf-8"))
     for t in tracks:
         print("-- " + t)
         for nm, _ in variants:

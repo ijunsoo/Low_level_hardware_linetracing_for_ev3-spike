@@ -26,7 +26,9 @@ import numpy as np        # noqa: E402
 import core               # noqa: E402
 import sweep_lf3          # noqa: E402
 
-TORCH_PY = os.path.expanduser("~/.venvs/linefollowing/bin/python")
+# 정책 내보내기(export_policy)를 돌릴 torch 있는 파이썬: 환경변수 TORCH_PY > 기본 venv > 지금 파이썬
+_VENV_PY = os.path.expanduser("~/.venvs/linefollowing/bin/python")
+TORCH_PY = os.environ.get("TORCH_PY") or (_VENV_PY if os.path.exists(_VENV_PY) else sys.executable)
 TRACKS = {"photo": 40.0, "rightangle": 20.0}
 CFG = {"_ASYNC": True, "_CMDLAG": [0, 32], "_IMULAG": [0, 20], "_WEFF_RANGE": [1.15, 1.5],
        "_NOISE": [0.3, 1.0], "_LAG_MS": [3, 8]}
@@ -71,15 +73,15 @@ def main():
     seen = set()
     tmp = os.path.join(os.path.dirname(os.path.abspath(args.out)), "rl_eval_tmp.py")
     with mp.Pool(max(1, os.cpu_count() - 4)) as pool:      # 4코어는 GPU 학습 프로세스(커널 발행) 몫 — 다 쓰면 학습이 2배 느려짐
-        if not os.path.exists(args.out) or not open(args.out).read().strip():
+        if not os.path.exists(args.out) or not open(args.out, encoding="utf-8").read().strip():
             rule = open(os.path.join(ROOT, "spike/spike_lf3_rule.py"), encoding="utf-8").read()
             t0 = time.time()
             r = evaluate(pool, rule, args.profile, args.worlds)
-            with open(args.out, "a") as f:
+            with open(args.out, "a", encoding="utf-8") as f:
                 f.write(json.dumps(dict(it="E2", res=r, sec=round(time.time() - t0, 1)), ensure_ascii=False) + "\n")
             print("E2", r, flush=True)
         else:
-            for line in open(args.out):
+            for line in open(args.out, encoding="utf-8"):
                 try:
                     seen.add(json.loads(line)["it"])
                 except ValueError:
@@ -94,14 +96,14 @@ def main():
                 path = os.path.abspath(c if os.path.isabs(c) else os.path.join(args.run_dir, c))   # 내보내기는 cwd=sim에서 돎
                 time.sleep(1.0)                                   # 저장이 끝나도록
                 e = subprocess.run([TORCH_PY, "-m", "rl.export_policy", path, "--platforms", "spike", "--out", tmp],
-                                   cwd=SIM, capture_output=True, text=True)
+                                   cwd=SIM, capture_output=True, encoding="utf-8", errors="replace")
                 if e.returncode != 0:
                     print("내보내기 실패", it, e.stderr[-400:], flush=True)
                     seen.add(it)
                     continue
                 t0 = time.time()
                 r = evaluate(pool, open(tmp, encoding="utf-8").read(), args.profile, args.worlds)
-                with open(args.out, "a") as f:
+                with open(args.out, "a", encoding="utf-8") as f:
                     f.write(json.dumps(dict(it=it, res=r, sec=round(time.time() - t0, 1)), ensure_ascii=False) + "\n")
                 print(it, r, flush=True)
                 seen.add(it)

@@ -286,7 +286,7 @@ def sample_configs(cell_name, n, rng):
 def run_tasks(tasks, procs, log_path):
     rows = []
     t0 = time.time()
-    with Pool(procs) as pool, open(log_path, "w") as log:
+    with Pool(procs) as pool, open(log_path, "w", encoding="utf-8") as log:
         for i, row in enumerate(pool.imap_unordered(run_one, tasks, chunksize=1)):
             rows.append(row)
             if (i + 1) % 20 == 0 or i + 1 == len(tasks):
@@ -348,8 +348,8 @@ def main():
         rows = run_tasks(tasks, args.procs, os.path.join(SIM_DIR, "sweep_lf3_screen.log"))
         old = []
         if os.path.exists(screen_path):
-            old = [r for r in json.load(open(screen_path)) if r["cell"] not in cells]
-        json.dump(old + rows, open(screen_path, "w"), ensure_ascii=False)
+            old = [r for r in json.load(open(screen_path, encoding="utf-8")) if r["cell"] not in cells]
+        json.dump(old + rows, open(screen_path, "w", encoding="utf-8"), ensure_ascii=False)
         summ = summarize(rows)
         print("\n=== 스크리닝 셀별 최고 (점수 낮을수록 좋음) ===")
         for cell in cells:
@@ -365,14 +365,14 @@ def main():
     # ---- validate ----
     tasks = []
     if args.configs:
-        pairs = json.load(open(args.configs))
+        pairs = json.load(open(args.configs, encoding="utf-8"))
         cells = sorted(set(c for c, _ in pairs), key=list(CELLS).index)
         for cell, cfg in pairs:
             for tr in (args.tracks.split(",") if args.tracks else TRACKS):
                 for k in range(args.worlds):
                     tasks.append((cell, cfg, tr, k))
     else:
-        screen = json.load(open(screen_path))
+        screen = json.load(open(screen_path, encoding="utf-8"))
         summ = summarize([r for r in screen if r["cell"] in cells])
         for cell in cells:
             sub = sorted([s for s in summ if s["cell"] == cell], key=lambda s: s["score"])
@@ -387,8 +387,8 @@ def main():
     rows = run_tasks(tasks, args.procs, os.path.join(SIM_DIR, "sweep_lf3_validate.log"))
     old = []
     if os.path.exists(val_path):
-        old = [r for r in json.load(open(val_path)) if r["cell"] not in cells]
-    json.dump(old + rows, open(val_path, "w"), ensure_ascii=False)
+        old = [r for r in json.load(open(val_path, encoding="utf-8")) if r["cell"] not in cells]
+    json.dump(old + rows, open(val_path, "w", encoding="utf-8"), ensure_ascii=False)
     summ = summarize(rows)
     print("\n=== 검증 (%d월드 × mrc·photo) ===" % args.worlds)
     for cell in cells:

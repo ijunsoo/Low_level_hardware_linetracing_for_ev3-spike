@@ -1,0 +1,6 @@
+# Simulator (sim/run_sim.py, sim/regress.py, sweeps) — Python 3.9+
+#   pip install -r requirements.txt
+# Regression goldens reproduce bit-for-bit with numpy 1.21.6 – 2.5.4.
+numpy>=1.21
+# Plots only (run_sim.py without --no-plot, sim/tools/*.py --png). Tested 3.5.3 – 3.11.2.
+matplotlib>=3.5

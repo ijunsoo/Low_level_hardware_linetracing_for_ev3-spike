@@ -11,15 +11,34 @@
 #  - pybricks 목(sim/pybricks)이 SIM에 연결: SPIKE(PrimeHub·PUPDevice·
 #    pupdevices.Motor), EV3(EV3Brick·ev3devices.Motor/ColorSensor/GyroSensor)
 # =====================================================================
+import codecs
 import json
 import collections
 import math
 import os
+import sys
 
 import numpy as np
 
 PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 PROFILES_DIR = os.path.join(PKG_DIR, "profiles")
+
+
+def _utf8_stdio():
+    # Windows: 출력이 파일·파이프로 가면 stdout이 cp1252/cp949 같은 코드페이지라 한글 print(실기 코드
+    # 출력 포함)에서 UnicodeEncodeError가 난다 → UTF-8로 바꾼다. 이미 UTF-8이면(macOS·Linux·Windows
+    # 콘솔) 그대로. PYTHONIOENCODING을 직접 정했으면 건드리지 않는다.
+    if os.environ.get("PYTHONIOENCODING"):
+        return
+    for s in (sys.stdout, sys.stderr):
+        try:
+            if codecs.lookup(s.encoding).name != "utf-8":
+                s.reconfigure(encoding="utf-8", errors=s.errors)
+        except (AttributeError, LookupError, TypeError, ValueError, OSError):
+            pass        # None(pythonw)·StringIO 등 바꿀 수 없는 스트림
+
+
+_utf8_stdio()
 
 # pybricks 목(mock) 모듈이 여기로 연결한다. run_sim.py가 Sim을 만들어 넣음.
 SIM = None
@@ -83,7 +102,7 @@ def load_params(path=None):
     p = dict(DEFAULT_PARAMS)
     path = path or os.path.join(PKG_DIR, "robot_params.json")
     if os.path.exists(path):
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             p.update(json.load(f))
     return p
 
@@ -101,11 +120,11 @@ def _profile_path(name):
 
 def _read_profile(name, depth=0):
     if depth > 8:
-        raise ValueError("프로파일 extends 순환: %s" % name)
+        raise ValueError("profile 'extends' loop: %s" % name)
     path = _profile_path(name)
     if not os.path.exists(path):
-        raise FileNotFoundError("프로파일 없음: %s (%s)" % (name, path))
-    with open(path) as f:
+        raise FileNotFoundError("profile not found: %s (%s)" % (name, path))
+    with open(path, encoding="utf-8") as f:      # 프로파일에 한글 주석 — Windows 기본 코드페이지로는 못 읽음
         d = json.load(f)
     parent = d.pop("extends", None)
     if parent:
@@ -296,7 +315,7 @@ def _load_photo_track(line_width_mm, scale=1.0):
     실측 195cm 매트 스케일, 코스 6.89m, 서쪽 출발. 마커 포함.
     scale: 트랙 확대 배율 (라인 폭은 그대로) — 이름 "photo@1.15" = 1.15배. 사진 추출 루프 반지름(최소 ≈76mm)이
     한국 규정 최소 곡률 반경 100mm보다 작아, 실제 경기장이 더 클 수 있는지 보는 용도"""
-    with open(os.path.join(PKG_DIR, "viz", "track_pts.json")) as f:
+    with open(os.path.join(PKG_DIR, "viz", "track_pts.json"), encoding="utf-8") as f:
         d = json.load(f)
     c = d["coarse"]
     path = np.asarray(_densify(list(zip(c["px"], c["py"])))) * scale
@@ -369,7 +388,7 @@ class Sim:
         for port, (side, _) in self._motors.items():
             self._side_ports[side].append(port)
         if not self._side_ports['L'] or not self._side_ports['R']:
-            raise ValueError("좌/우 구동 모터가 모두 있어야 함: %s" % self._motors)
+            raise ValueError("the profile needs both a left and a right drive motor: %s" % self._motors)
         self._mphys = {pt: 0.0 for pt in self._motors}   # 물리 duty (클램프됨)
         # ★구동 지연 (실기 블랙박스 2026-10-17: 조향 명령 → 요레이트 응답에 순수 지연 24~40ms)
         #   cmd_lag_ms > 0이면 모터 명령이 그만큼 늦게 적용됨. 기본 0 = 기존과 동일
@@ -392,12 +411,12 @@ class Sim:
         self._port_idx = {pt: i for i, pt in enumerate(ports)}
         for key in ("sensor_white", "sensor_black"):
             if len(self.p[key]) < self._n:
-                raise ValueError("%s 길이(%d) < 센서 수(%d)" % (key, len(self.p[key]), self._n))
+                raise ValueError("%s has %d entries but there are %d sensors" % (key, len(self.p[key]), self._n))
         sp = self.p["sensor_spacing_mm"]
         pos = self.p.get("sensor_pos_mm")   # 센서별 [전방mm, 측방mm(+좌)] — 분리배치용
         if pos:
             if len(pos) != self._n:
-                raise ValueError("sensor_pos_mm 개수(%d) ≠ 센서 수(%d)" % (len(pos), self._n))
+                raise ValueError("sensor_pos_mm has %d entries but there are %d sensors" % (len(pos), self._n))
             self._fwd = [float(q[0]) for q in pos]
             self._lat = [float(q[1]) for q in pos]
         else:
@@ -508,7 +527,7 @@ class Sim:
 
     def motor_check(self, port):
         if port not in self._motors:
-            raise ValueError("unknown motor port: %s (프로파일 motors: %s)"
+            raise ValueError("no motor on port %s in this profile (motors: %s)"
                              % (port, sorted(self._motors)))
 
     def _set_motor(self, port, duty, mode):
@@ -577,6 +596,12 @@ class Sim:
             if self._noadv > self.STALL_CALLS:
                 self._finish("stall")
 
+    def poll(self):
+        # 시간이 안 흐르는 목 호출(버튼·IMU·배터리·StopWatch): 이것만 도는 무한 반복도 STALL_CALLS 뒤 stall로 끝낸다
+        self._noadv += 1
+        if self._noadv > self.STALL_CALLS:
+            self._finish("stall")
+
     def log_event(self, kind, value):
         self.events.append((round(self.t, 4), kind, value))
 
@@ -602,7 +627,7 @@ class Sim:
 
     def gyro_check(self, port):
         if self._gsrc != "sensor" or port != self._gport:
-            raise OSError("시뮬: %s 포트에 자이로센서 없음 (프로파일 gyro.port=%s)"
+            raise OSError("simulator: no gyro sensor on port %s (profile gyro.port=%s)"
                           % (port, self._gport))
 
     def gyro_read(self):
@@ -638,7 +663,7 @@ class Sim:
 
     def color_check(self, port):
         if port not in self._port_idx:
-            raise OSError("시뮬: %s 포트에 컬러센서 없음 (프로파일 sensor_ports=%s)"
+            raise OSError("simulator: no color sensor on port %s (profile sensor_ports=%s)"
                           % (port, list(self._port_idx)))
 
     def wait_ms(self, ms):

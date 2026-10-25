@@ -3,18 +3,27 @@ import math
 import core
 
 
+def _poll():
+    # 시간이 안 흐르는 호출 — 이것만 도는 무한 반복은 시뮬이 stall로 끝냄
+    if core.SIM:
+        core.SIM.poll()
+
+
 class _Battery:
     def voltage(self):
         if not core.SIM:
             return 8000
+        _poll()
         return int(core.SIM.p.get("battery_mv", 8000) * core.SIM.p["battery_scale"])
 
     def current(self):
+        _poll()
         return 0
 
 
 class _Buttons:
     def pressed(self):
+        _poll()
         return set()
 
 
@@ -55,16 +64,21 @@ class _IMU:
         self._h0 = core.SIM.h if core.SIM else 0.0
 
     def angular_velocity(self, axis=None):
-        if axis is not None and getattr(axis, "name", "Z") != "Z":
+        _poll()
+        if axis is None:                    # 실기처럼 축을 안 주면 (X, Y, Z)
+            return (0.0, 0.0, core.SIM.imu_rate_dps())
+        if getattr(axis, "name", "Z") != "Z":
             return 0.0
         return core.SIM.imu_rate_dps()
 
     def acceleration(self, axis=None):
+        _poll()
         if axis is not None and getattr(axis, "name", "Z") == "Z":
             return 9810.0
         return 0.0 if axis is not None else (0.0, 0.0, 9810.0)
 
     def heading(self):
+        _poll()
         return math.degrees(core.SIM.h - self._h0)
 
     def reset_heading(self, angle=0):

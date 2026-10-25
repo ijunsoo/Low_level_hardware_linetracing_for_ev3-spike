@@ -1,12 +1,16 @@
 # =====================================================================
-#  실기 코드를 '수정 없이' 시뮬레이터에서 실행하고 결과를 그림으로 저장.
+#  Run an unmodified Pybricks robot program (SPIKE Prime / EV3) in the
+#  simulator and save a plot of the run.
 #
-#  사용법:
-#    python3 sim/run_sim.py spike/spike_lf3_rule.py --profile spike_3s_geo2 --track photo
-#    python3 sim/run_sim.py ev3/ev3_lf3_rule.py --profile ev3_3s_geo --track hard
-#    python3 sim/run_sim.py 파일.py --profile spike_3s_geo2 \
-#        --sub "RAW_MODE = True=>RAW_MODE = False"   # 소스 치환 (시뮬 센서 목은 반사 모드만)
-#    python3 sim/run_sim.py --list                 # 프로파일·트랙 목록
+#  Usage:
+#    python sim/run_sim.py examples/spike_simple_follower.py --profile spike_3s_geo --track main
+#    python sim/run_sim.py ev3/ev3_final.py --profile ev3_3s_geo --track hard --no-plot
+#    python sim/run_sim.py my_robot.py --profile spike_3s_geo2 \
+#        --sub "RAW_MODE = True=>RAW_MODE = False"   # replace text in the program before running
+#    python sim/run_sim.py --list                    # list profiles and tracks
+#
+#  The program file itself is never changed. `import pybricks...` inside it
+#  resolves to the mock package in sim/pybricks/.
 # =====================================================================
 import argparse
 import collections
@@ -18,63 +22,74 @@ import core   # noqa: E402
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("target", nargs="?", default=None, help="실행할 실기 파일 (예: spike/spike_lf3_rule.py)")
-    ap.add_argument("--track", default="mrc", choices=core.track_names())
+    ap = argparse.ArgumentParser(description="Run a Pybricks line-following program in the simulator.")
+    ap.add_argument("target", nargs="?", default=None, help="robot program to run (e.g. examples/spike_simple_follower.py)")
+    ap.add_argument("--track", default="mrc",
+                    help="track to drive on (default: mrc; see --list). photo@SCALE scales the photo track, e.g. photo@1.3")
     ap.add_argument("--profile", default=None,
-                    help="하드웨어 프로파일 (spike_3s_geo2, spike_3s_geo2x, ev3_3s_geo ... — --list로 전체)")
-    ap.add_argument("--params", default=None, help="robot_params.json 경로 (프로파일 대신)")
+                    help="robot hardware profile from sim/profiles (e.g. spike_3s_geo, ev3_3s_geo; see --list)")
+    ap.add_argument("--params", default=None, help="path to a robot params JSON instead of a profile")
     ap.add_argument("--sub", action="append", default=[],
-                    help="소스 치환 'OLD=>NEW' (여러 번 가능, 실기 파일은 안 바뀜)")
-    ap.add_argument("--offset", type=float, default=0.0, help="시작 좌우 오프셋(mm)")
-    ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--limit", type=float, default=60.0, help="제한시간(s)")
-    ap.add_argument("--out", default=os.path.join(core.PKG_DIR, "sim_result.png"))
-    ap.add_argument("--no-plot", action="store_true")
-    ap.add_argument("--list", action="store_true", help="프로파일·트랙 목록")
+                    help="replace text in the program before running: 'OLD=>NEW' (repeatable; the file is not changed)")
+    ap.add_argument("--offset", type=float, default=0.0, help="start with this sideways offset from the line (mm)")
+    ap.add_argument("--seed", type=int, default=0, help="random seed for sensor noise")
+    ap.add_argument("--limit", type=float, default=60.0, help="time limit (s)")
+    ap.add_argument("--lost", type=float, default=core.Sim.LOST_MM,
+                    help="end the run as 'lost' this far from the line (mm, default %(default)s)")
+    ap.add_argument("--out", default="sim_result.png", help="where to save the plot (default: ./sim_result.png)")
+    ap.add_argument("--no-plot", action="store_true", help="don't draw a plot (no matplotlib needed)")
+    ap.add_argument("--list", action="store_true", help="list available profiles and tracks")
     args = ap.parse_args()
     if not args.list and not args.target:
-        ap.error("실행할 실기 파일을 주세요 (예: spike/spike_lf3_rule.py --profile spike_3s_geo2)")
+        ap.error("give a robot program to run (e.g. examples/spike_simple_follower.py --profile spike_3s_geo)")
 
     if args.list:
-        print("프로파일:", ", ".join(core.list_profiles()))
-        print("트랙:", ", ".join(core.track_names()))
+        print("profiles:", ", ".join(core.list_profiles()))
+        print("tracks:", ", ".join(core.track_names()), "(+ photo@SCALE)")
         return
+    if args.track not in core.track_names() and not args.track.startswith("photo@"):
+        ap.error("unknown track %r (choose from %s, or photo@SCALE)" % (args.track, ", ".join(core.track_names())))
 
     params = (core.load_profile(args.profile) if args.profile
               else core.load_params(args.params))
     track = core.make_track(args.track, params["line_width_mm"])
     sim = core.Sim(params, track, start_lateral_mm=args.offset,
                    time_limit_s=args.limit, seed=args.seed)
+    sim.LOST_MM = args.lost
     core.SIM = sim
 
     src = open(args.target, encoding="utf-8").read()
     for s in args.sub:
         old, new = s.split("=>", 1)
         if old not in src:
-            sys.exit("--sub 대상 문자열이 파일에 없음: %r" % old)
+            sys.exit("--sub: text not found in the program: %r" % old)
         src = src.replace(old, new)
 
-    print("실행:", os.path.abspath(args.target), "/ 트랙:", args.track,
-          "/ 프로파일:", args.profile or (args.params or "robot_params.json"))
+    sys.path.insert(0, os.path.dirname(os.path.abspath(args.target)))   # the program's own modules (e.g. robot.py)
+    print("running:", os.path.abspath(args.target), "/ track:", args.track,
+          "/ profile:", args.profile or (args.params or "robot_params.json"))
     try:
         exec(compile(src, os.path.abspath(args.target), "exec"), {"__name__": "__main__"})
-        print("경고: 파일이 스스로 종료됨 (pid_control 무한루프가 아님?)")
+        print("note: the program ended by itself before the run was over (no main loop?)")
     except core.SimDone:
         pass
 
     r = sim.result or {"reason": "none"}
-    print("결과:", r)
+    print("result:", r)
     leds = collections.Counter(v for _, k, v in sim.events if k == "light")
     if leds:
-        print("LED 이벤트:", dict(leds))
+        print("light events:", dict(leds))
     if not args.no_plot:
         plot(sim, args.out)
 
 
 def plot(sim, out):
     import numpy as np
-    import matplotlib
+    try:
+        import matplotlib
+    except ImportError:
+        print("no plot: matplotlib is not installed (pip install matplotlib, or use --no-plot)")
+        return
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
@@ -111,7 +126,7 @@ def plot(sim, out):
 
     fig.tight_layout()
     fig.savefig(out, dpi=110)
-    print("그림 저장:", out)
+    print("plot saved:", out)
 
 
 if __name__ == "__main__":

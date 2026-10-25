@@ -177,14 +177,14 @@ def main():
     ap.add_argument("--prof", default=None, help="프로파일 덮어쓰기 JSON (예: 센서 흰/검 값으로 대비 바꾸기)")
     args = ap.parse_args()
     v = args.variants
-    variants = json.load(open(v)) if os.path.exists(v) else json.loads(v)
+    variants = json.load(open(v, encoding="utf-8")) if os.path.exists(v) else json.loads(v)
     a = dict(worlds=args.worlds, tracks=args.tracks.split(","), profile=args.profile, fwd=args.fwd, src=args.src,
              noise=rng2(args.noise), lag=rng2(args.lag), cmdlag=rng2(args.cmdlag), imulag=rng2(args.imulag),
              weff=rng2(args.weff), wob=rng2(args.wob), prof=json.loads(args.prof) if args.prof else None)
     out = run(variants, a)
     print(report(variants, out, a["tracks"]))
     if args.json:
-        json.dump({"%s|%s" % k: v for k, v in out.items()}, open(args.json, "w"), ensure_ascii=False)
+        json.dump({"%s|%s" % k: v for k, v in out.items()}, open(args.json, "w", encoding="utf-8"), ensure_ascii=False)
 
 
 if __name__ == "__main__":

@@ -89,12 +89,12 @@ def layout_and_consts(layout, cfg_path=None):
     consts.update(fixed)
     vpath = os.path.join(_SIM_DIR, "sweep_lf3_validate.json")
     if os.path.exists(vpath):
-        summ = SL.summarize(json.load(open(vpath)))
+        summ = SL.summarize(json.load(open(vpath, encoding="utf-8")))
         sub = sorted([s for s in summ if s["cell"] == layout and s["cfg"]], key=lambda s: s["score"])
         if sub:
             consts.update({k: (float(v) if k in ("KP", "KD") else int(float(v))) for k, v in sub[0]["cfg"].items()})
     if cfg_path:                                          # 예: GPU 스윕 최고 설정
-        cfg = json.load(open(cfg_path))
+        cfg = json.load(open(cfg_path, encoding="utf-8"))
         consts.update({k: (float(v) if k in ("KP", "KD") else int(float(v))) for k, v in cfg.items()})
     return pos, consts
 
@@ -336,9 +336,9 @@ def main():
             if score >= best_score:
                 best_score = score
                 torch.save(ckpt(), os.path.join(out_dir, "policy.pt"))
-                json.dump(dict(it=it, eval=ev, rule_eval=rule_eval), open(os.path.join(out_dir, "eval.json"), "w"),
-                          ensure_ascii=False, indent=1)
-        json.dump(log, open(os.path.join(out_dir, "log.json"), "w"), ensure_ascii=False)
+                json.dump(dict(it=it, eval=ev, rule_eval=rule_eval),
+                          open(os.path.join(out_dir, "eval.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        json.dump(log, open(os.path.join(out_dir, "log.json"), "w", encoding="utf-8"), ensure_ascii=False)
     print("완료:", out_dir, flush=True)
 
 

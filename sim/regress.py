@@ -193,13 +193,13 @@ def main():
 
     golden = {}
     if os.path.exists(GOLDEN):
-        with open(GOLDEN) as f:
+        with open(GOLDEN, encoding="utf-8") as f:
             golden = json.load(f)
 
     if args.capture:
         for key, out, _ in rows:
             golden[key] = out
-        with open(GOLDEN, "w") as f:
+        with open(GOLDEN, "w", encoding="utf-8") as f:
             json.dump(golden, f, indent=1, ensure_ascii=False, sort_keys=True)
         print("골든 저장:", GOLDEN, "(%d건 갱신)" % len(rows))
         for key, out, dt in rows:

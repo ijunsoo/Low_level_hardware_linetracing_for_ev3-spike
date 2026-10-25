@@ -1,187 +1,206 @@
-# 시뮬레이터 (CPU · GPU) · 강화학습
+# Simulator (CPU · GPU) and reinforcement learning
 
-실기 Pybricks 코드를 **수정 없이** PC에서 실행하는 디지털 트윈입니다.
-모터 가속(비대칭 1차 지연), 회전 미끄러짐, 센서 발자국·노이즈·지연, 실측 루프 속도를 반영합니다.
-SPIKE Prime(+EV3 컬러센서)과 EV3(Pybricks v4) 둘 다 지원합니다.
+English | [한국어](README.ko.md)
 
-## 목차
+A digital twin that runs real Pybricks robot programs **unmodified** on a PC.
+It models motor acceleration (asymmetric first-order lag), turning slip, the sensor footprint, noise and lag, and the control-loop rate measured on real hubs.
+Both SPIKE Prime (with EV3 color sensors) and EV3 (Pybricks v4) are supported.
 
-1. [준비](#1-준비)
-2. [구성](#2-구성)
-3. [프로파일과 트랙](#3-프로파일과-트랙)
-4. [실행과 평가](#4-실행과-평가)
-5. [분석 도구 (tools/)](#5-분석-도구-tools)
-6. [회귀 테스트](#6-회귀-테스트)
-7. [GPU 시뮬 · 강화학습 (rl/)](#7-gpu-시뮬--강화학습-rl)
-8. [실기로 보정하기](#8-실기로-보정하기)
-9. [한계](#9-한계)
+## Contents
 
----
+1. [Setup](#1-setup)
+2. [Layout](#2-layout)
+3. [Profiles and tracks](#3-profiles-and-tracks)
+4. [Running and evaluating](#4-running-and-evaluating)
+5. [Analysis tools (tools/)](#5-analysis-tools-tools)
+6. [Regression tests](#6-regression-tests)
+7. [GPU simulator and RL (rl/)](#7-gpu-simulator-and-rl-rl)
+8. [Calibrating against a real robot](#8-calibrating-against-a-real-robot)
+9. [Limitations](#9-limitations)
 
-## 1. 준비
-
-| 용도 | 파이썬 |
-|---|---|
-| CPU 시뮬 | numpy가 있는 파이썬 — `/opt/homebrew/bin/python3.13` |
-| GPU 시뮬·강화학습 | `~/.venvs/linefollowing` — numpy, torch(MPS), mpy-cross |
-| 그림 (`--png`) | matplotlib가 있는 파이썬 |
-
-프로젝트 안 `.venv`는 iCloud 폴더라 파일이 내려가면 `import numpy`에 몇 분이 걸립니다. 위 파이썬을 쓰세요.
+The API the mock supports, the profile keys and the track format are documented in [`docs/SIM_API.md`](../docs/SIM_API.md).
 
 ---
 
-## 2. 구성
+## 1. Setup
 
-| 경로 | 역할 |
-|---|---|
-| `core.py` | 물리(모터·회전 미끄러짐)·센서·트랙·시뮬 루프 |
-| `pybricks/` | Pybricks 목 — 실기 파일이 그대로 `import` (SPIKE `PrimeHub`·`PUPDevice`, EV3 `EV3Brick`·`ColorSensor`·`LUMPDevice`) |
-| `profiles/` | 하드웨어 프로파일 (`extends`로 상속) |
-| `run_sim.py` | 실기 파일 하나를 달려 보고 그림 저장 |
-| `eval_lf3.py`, `recap_stats.py` | 여러 월드 평가, 재포착 통계 |
-| `sweep_lf3.py` | 실기 파일 상수 스윕 (CPU) |
-| `regress.py` | 회귀 테스트 |
-| `bb_parse.py` | 실기 블랙박스 해석 |
-| `diag_parse.py` | 실기 진단 로그 해석 → 프로파일 보정 |
-| `photo_track.py` | 경기장 사진 → 트랙 (`viz/track_pts.json`) |
-| `tools/` | 분석 도구 ([5장](#5-분석-도구-tools)) |
-| `rl/` | GPU 시뮬·GPU 스윕·강화학습 ([7장](#7-gpu-시뮬--강화학습-rl)) |
-| `viz/gpu_view.html` | GPU 시뮬 재생 화면 |
-| `runs_geo/` | 루트 README에 쓴 그림 |
-
----
-
-## 3. 프로파일과 트랙
-
-`--profile 이름`으로 고릅니다.
-
-| 프로파일 | 내용 |
-|---|---|
-| `spike_3s_geo2` | **SPIKE 1배 기어 기본.** 실측 치수(센서 3개 23mm 간격 @170mm, 윤거 205mm, 바퀴 80mm) + 회전 보정(시정수 0.05s, w_eff 1.5) |
-| `spike_3s_geo2x` | **SPIKE 2배 기어 기본.** geo2 + 기어 2배 + 모터·회전 시정수 ×3 (토크 한계) |
-| `ev3_3s_geo` | EV3 (포트 S1·S3·S2, 모터 A·B / C·D, 자이로 없음) |
-| `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s`(= `robot_params.json`) | 위 프로파일들의 상속 단계 (예전 측정) |
-| `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 센서 4개 실험: 3개 + D 읽기만 / 4개 일렬 / 3개 + 앞 가운데 |
-
-geo2·geo2x로 평가할 때는 `--weff 1.4,1.6`을 함께 줍니다.
-
-| 트랙 | 내용 |
-|---|---|
-| `easy`, `main`, `hard` | 기본 곡선 트랙 |
-| `rightangle` | 직선 뒤 직각 3번 |
-| `mrc`, `mrc_real` | 대회형 트랙 (1.6배 / 실물 크기) |
-| `photo` | 경기장 사진에서 뽑은 트랙 (195cm 매트, 6.89m) |
-| `photo@배율` | 사진 트랙 확대. `photo@1.3`이면 원 반지름 ≈124mm로 실기 원 크기와 맞음 |
-
----
-
-## 4. 실행과 평가
+Python 3.9 or newer. Run every command from the repository root.
 
 ```bash
-python3.13 sim/run_sim.py --list                                                        # 프로파일·트랙 목록
-python3.13 sim/run_sim.py spike/spike_lf3_rule.py --profile spike_3s_geo2 --track photo
-python3.13 sim/run_sim.py ev3/ev3_lf3_rule.py --profile ev3_3s_geo --track hard
+pip install -r requirements.txt        # numpy, matplotlib
+pip install -r requirements-gpu.txt    # optional: PyTorch for the GPU simulator and RL
 ```
 
-- **센서 모드**: 시뮬 센서 목은 반사광(모드 0)만 지원합니다. `RAW_MODE = True`인 파일은 `RAW_MODE False`와 시뮬 밝기 `VALUE`(SPIKE `[34, 6, 22, 3, 21, 3]`)로 바꿔서 돌립니다 (아래 `--base`).
-- **최종판**(`spike_final.py`, `ev3_final.py`)은 바꿀 값이 마지막 `line_trace(...)` 한 줄에 있어서 `--base`로 `VALUE`·`AUTO_STOP`을 못 바꿉니다. 사본에서 그 줄을 고쳐(`VALUE=[34, 6, 22, 3, 21, 3]`, `AUTO_STOP=False`) 평가하고, `RAW_MODE`·`AUTO_CAL`은 `--base`로 바꿉니다.
-  EV3 최종판은 RGB 반사광(`ColorSensor`)이 기본이라 `RAW_MODE`를 안 바꿔도 되고, 빨간 불 경로는 `--base '{"RED_LIGHT": true, "RAW_MODE": false, "VALUE0": [34, 6, 22, 3, 21, 3]}'`로 돌립니다.
+| Use | Needs |
+|---|---|
+| CPU simulator, tools, regression tests | numpy |
+| Plots (`run_sim.py` without `--no-plot`) | matplotlib |
+| GPU simulator, GPU sweeps, PPO | torch — picks Apple MPS, CUDA or CPU automatically |
 
 ---
 
-## 5. 분석 도구 (tools/)
+## 2. Layout
 
-| 파일 | 역할 |
+| Path | Role |
 |---|---|
-| `corner_eval.py` | 변형 평가: 완주·시간·최대 이탈·뱅킹·피벗·루프 속도. `--base` 공통 상수, `--dump` 월드별 JSON |
-| `paired.py` | `--dump` 결과를 같은 월드끼리 짝지어 비교 |
-| `loop_trace.py` | 원·교차로 구간의 결과와 바퀴축·센서 궤적 그림 |
-| `ra_trace.py` | 직각 트랙 첫 직각: 센서가 지나친 거리, 재진입 각도 |
-| `stop_test.py` | 정지 버튼 시험: 정지 후 출력량, 프로그램이 붙잡는 시간, 그동안 바퀴가 더 굴러간 거리 |
-| `step_dump.py` | 한 월드의 스텝별 센서·오차·조향·위치 |
-| `pivot_resp.py` | 제자리 회전 뒤 회전 속도가 붙는 정도: 실기 블랙박스 vs 시뮬 |
-| `make4.py`, `make_guard.py`, `make_sent.py`, `make_bank.py` | 센서 4개·원 대책·앞 센티넬·곡선 강제 회전 실험 변형 생성 → `tools/variants/` (git 제외) |
+| `core.py` | Physics (motors, turning slip), sensors, tracks, simulation loop |
+| `pybricks/` | Pybricks mock — robot programs `import` it unchanged (SPIKE `PrimeHub`, `Motor`, `ColorSensor`, `PUPDevice`; EV3 `EV3Brick`, `ColorSensor`, `LUMPDevice`; `DriveBase`, …) |
+| `profiles/` | Hardware profiles (inherit with `extends`) |
+| `run_sim.py` | Run one robot program and save a plot |
+| `eval_lf3.py`, `recap_stats.py` | Evaluate over many randomized worlds, line-recapture statistics |
+| `sweep_lf3.py` | Sweep constants of a robot program (CPU) |
+| `regress.py` | Regression tests |
+| `bb_parse.py` | Decode a real robot's black-box log |
+| `diag_parse.py` | Decode a real robot's diagnostic log → calibrate a profile |
+| `photo_track.py` | Competition-field photo → track (`viz/track_pts.json`) |
+| `tools/` | Analysis tools ([section 5](#5-analysis-tools-tools)) |
+| `rl/` | GPU simulator, GPU sweeps, reinforcement learning ([section 7](#7-gpu-simulator-and-rl-rl)) |
+| `viz/gpu_view.html` | Replay viewer for the GPU simulator |
+| `runs_geo/` | Figures used in the top-level README |
+
+---
+
+## 3. Profiles and tracks
+
+Choose a profile with `--profile NAME`. To describe your own robot, see [`docs/SIM_API.md`](../docs/SIM_API.md).
+
+| Profile | What it is |
+|---|---|
+| `spike_3s_geo2` | **SPIKE, 1× gearing (default).** Measured geometry (3 sensors 23 mm apart, 170 mm ahead of the axle; track width 205 mm; 80 mm wheels) + turn calibration (time constant 0.05 s, w_eff 1.5) |
+| `spike_3s_geo2x` | **SPIKE, 2× gearing.** geo2 + gears doubled + motor/turn time constants ×3 (torque limit) |
+| `ev3_3s_geo` | EV3 (sensor ports S1·S3·S2, motors A·B / C·D, no gyro) |
+| `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s` (= `robot_params.json`) | Earlier stages these profiles inherit from (older measurements) |
+| `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 4-sensor experiments: 3 + D read only / 4 in a row / 3 + one ahead in the middle |
+
+When evaluating with geo2 or geo2x, also pass `--weff 1.4,1.6`.
+
+| Track | What it is |
+|---|---|
+| `easy`, `main`, `hard` | Basic curve tracks |
+| `rightangle` | Straights followed by three right angles |
+| `mrc`, `mrc_real` | Competition-style track (1.6× scale / real size) |
+| `photo` | Track extracted from a photo of a competition field (195 cm mat, 6.89 m) |
+| `photo@SCALE` | The photo track scaled up. `photo@1.3` makes the loop radius ≈124 mm, matching the real loop |
+
+---
+
+## 4. Running and evaluating
+
+```bash
+python sim/run_sim.py --list                                              # profiles and tracks
+python sim/run_sim.py ev3/ev3_final.py --profile ev3_3s_geo --track hard  # saves ./sim_result.png
+python sim/run_sim.py spike/spike_lf3_rule.py --profile spike_3s_geo2 --track photo --no-plot
+```
+
+A run ends with one of these results:
+
+| `reason` | Meaning |
+|---|---|
+| `finish` | Reached the end of the track |
+| `lost` | Got more than 200 mm from the line (`Sim.LOST_MM`; measured at the sensors on the measured-geometry profiles) |
+| `timeout` | Hit the time limit (`--limit`, default 60 s) |
+| `stall` | 200,000 calls in a row without simulated time passing — an endless loop that never waits or touches the hardware |
+
+- **Simulated time**: `wait()` advances simulated time, and every motor, sensor and gyro call costs the time measured on real hubs (`_cost` in `core.py`), so loop rates match the robot. The program itself runs as fast as your PC allows.
+- **Sensor modes**: the mock simulates reflected light (mode 0) only. Programs with `RAW_MODE = True` are run with `RAW_MODE False` and the simulated brightness `VALUE` (SPIKE `[34, 6, 22, 3, 21, 3]`), using `--sub` or `--base`.
+- **Final programs** (`spike_final.py`, `ev3_final.py`) keep the values to change in their last `line_trace(...)` line, which `--base` cannot reach. Evaluate a copy with that line edited (`VALUE=[34, 6, 22, 3, 21, 3]`, `AUTO_STOP=False`) and set `RAW_MODE`/`AUTO_CAL` with `--base`.
+  The EV3 final reads RGB reflection (`ColorSensor`) by default, so it needs no `RAW_MODE` change; run its red-light path with `--base '{"RED_LIGHT": true, "RAW_MODE": false, "VALUE0": [34, 6, 22, 3, 21, 3]}'`.
+
+---
+
+## 5. Analysis tools (tools/)
+
+| File | Role |
+|---|---|
+| `corner_eval.py` | Evaluate variants: finish rate, time, max deviation, banking, pivots, loop rate. `--base` shared constants, `--dump` per-world JSON |
+| `paired.py` | Compare `--dump` results world by world |
+| `loop_trace.py` | Loop/crossing sections: results and axle/sensor trajectory plots |
+| `ra_trace.py` | First right angle of the `rightangle` track: sensor overshoot, re-entry angle |
+| `stop_test.py` | Stop-button test: output after stopping, how long the program holds on, how far the wheels keep rolling |
+| `step_dump.py` | Step-by-step sensors, error, steering and position for one world |
+| `pivot_resp.py` | How fast turning picks up after a pivot: real black box vs simulation |
+| `make4.py`, `make_guard.py`, `make_sent.py`, `make_bank.py` | Generate experiment variants (4 sensors, loop guard, front sentinel, curve forced turn) → `tools/variants/` (not in git) |
 
 ```bash
 B='{"RAW_MODE": false, "VALUE": [34, 6, 22, 3, 21, 3], "AUTO_CAL": false}'
-python3.13 sim/tools/corner_eval.py '[["85", {"ST_BANK": 85}], ["75", {}]]' --src spike/spike_lf3_rule_e8r10_170.py \
+python sim/tools/corner_eval.py '[["85", {"ST_BANK": 85}], ["75", {}]]' --src spike/spike_lf3_rule_e8r10_170.py \
   --profile spike_3s_geo2x --fwd 170 --weff 1.4,1.6 --base "$B" \
-  --tracks rightangle,main,hard,photo@1.3 --lost 450 --worlds 32 --dump /tmp/bank.json
-python3.13 sim/tools/paired.py "/tmp/bank.json:85" "/tmp/bank.json:75"
-python3.13 sim/tools/pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x
+  --tracks rightangle,main,hard,photo@1.3 --lost 450 --worlds 32 --dump bank.json
+python sim/tools/paired.py "bank.json:85" "bank.json:75"
+python sim/tools/pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x
 ```
 
-`--fwd 170`은 센서 3개를 그 거리 일렬로 놓고, `--fwd 0`은 프로파일의 센서 위치를 그대로 씁니다 (센서 4개 프로파일은 반드시 0).
+`--fwd 170` places the three sensors in a row at that distance; `--fwd 0` keeps the profile's sensor positions (always use 0 for 4-sensor profiles).
 
 ---
 
-## 6. 회귀 테스트
+## 6. Regression tests
 
-`core.py`나 목을 고친 뒤에는 꼭 돌립니다. 결과를 궤적 해시까지 골든(`regress_golden.json`)과 비교합니다.
+Run these after changing `core.py` or the mock. Results are compared with the goldens (`regress_golden.json`) down to trajectory hashes.
 
 ```bash
-python3.13 sim/regress.py              # 비교 (15건, 약 10초)
-python3.13 sim/regress.py --only lf3   # 일부만
-python3.13 sim/regress.py --capture    # 의도한 변경 뒤 골든 갱신
+python sim/regress.py              # compare (15 cases, about 10 s)
+python sim/regress.py --only lf3   # a subset
+python sim/regress.py --capture    # update the goldens after an intended change
 ```
 
-케이스: 센서 응답곡선, SPIKE·EV3 목 스모크(`tests/`), 3센서 규칙 파일(`spike_lf3_rule.py`, `ev3_lf3_rule.py`), **SPIKE↔EV3 동일성**(같은 물리·입출력에서 두 파일 궤적이 같은지).
+Cases: sensor response curve, SPIKE/EV3 mock smoke tests (`tests/`), the 3-sensor rule programs (`spike_lf3_rule.py`, `ev3_lf3_rule.py`), and **SPIKE↔EV3 parity** (both programs give the same trajectory under the same physics and I/O).
 
 ---
 
-## 7. GPU 시뮬 · 강화학습 (rl/)
+## 7. GPU simulator and RL (rl/)
 
-| 파일 | 역할 |
+| File | Role |
 |---|---|
-| `tracks.py` | 규정 기반 랜덤 트랙 생성 (라인 20mm, 최소 R100, 직각·예각·루프 교차·지그재그·S자·마커) |
-| `fastsim.py` | core와 같은 물리·센서를 numpy로 N대 동시에 |
-| `torchsim.py` | 같은 시뮬의 PyTorch판 (Apple GPU). 16,384대 동시 약 65만 결정/초 |
-| `rule_lf3.py` | 실기 3센서 규칙 로직의 벡터화판 (상수는 `spike/spike_lf3_rule.py`에서 읽음) |
-| `sweep_gpu.py`, `sweep_geo.py` | GPU 대규모 상수·배치 탐색 (상위 설정만 CPU core로 재검증) |
-| `env.py`, `ppo.py` | 강화학습 환경, PPO (잔차 정책, 비대칭 액터-크리틱) |
-| `export_policy.py` | 학습 정책 → 정수 연산 Pybricks 실기 파일 |
-| `parity_test.py`, `cpu_eval_ckpt.py`, `replay_test.py`, `watch_train.py` | CPU·GPU 일치 확인, 체크포인트 평가, 재생, 학습 지켜보기 |
+| `tracks.py` | Random tracks generated from competition rules (20 mm line, min. radius 100 mm, right/acute angles, loop crossings, zigzags, S-bends, markers) |
+| `fastsim.py` | Same physics and sensors as `core.py`, vectorized with numpy over N robots |
+| `torchsim.py` | PyTorch version of the same simulator. 16,384 robots at once, about 650k decisions/s on an Apple GPU |
+| `rule_lf3.py` | Vectorized version of the 3-sensor rule logic (constants read from `spike/spike_lf3_rule.py`) |
+| `sweep_gpu.py`, `sweep_geo.py` | Large constant/layout searches on the GPU (only the top settings are re-checked on the CPU simulator) |
+| `env.py`, `ppo.py` | RL environment and PPO (residual policy, asymmetric actor-critic) |
+| `export_policy.py` | Trained policy → integer-arithmetic Pybricks program for the real robot |
+| `parity_test.py`, `cpu_eval_ckpt.py`, `replay_test.py`, `watch_train.py` | CPU/GPU agreement, checkpoint evaluation, replay, live training monitor |
 
 ```bash
 cd sim
-~/.venvs/linefollowing/bin/python -m rl.torchsim --check --bench                   # numpy판과 일치·속도
-~/.venvs/linefollowing/bin/python -m rl.sweep_gpu --n 192 --no-slow --top-out top.json
-python3.13 sweep_lf3.py --phase validate --configs top.json --out val.json         # 상위 설정 CPU 재검증
-~/.venvs/linefollowing/bin/python -m rl.ppo --layout row3 --mode steer_only --actor-hid 16 --act relu
-~/.venvs/linefollowing/bin/python -m rl.export_policy rl/runs/<이름>/policy.pt
+python -m rl.torchsim --check --bench                      # agreement with the numpy version, speed
+python -m rl.sweep_gpu --n 192 --no-slow --top-out top.json
+python sweep_lf3.py --phase validate --configs top.json --out val.json   # re-check the top settings on the CPU
+python -m rl.ppo --layout row3 --mode steer_only --actor-hid 16 --act relu
+python -m rl.export_policy rl/runs/<name>/policy.pt
 ```
 
-- **`--no-slow`**: 파워 100 고정 (감속 없음 방침). `ppo --mode steer_only` = 조향만 보정.
-- **실기 배포**: 신경망을 정수(×1000) 고정소수점 직선 코드로 생성해 SPIKE·EV3 모두 float 없이 돕니다. 내보낼 때 중간값 범위를 계산해 오버플로가 없음을 확인하고, 생성 코드와 기준식을 극단값 포함 4,000개 입력으로 자가검사합니다.
-- **남겨 둔 학습 결과**: `runs/row3_res2_h16_v3` → `spike/spike_lf3_rl.py`, `ev3/ev3_lf3_rl.py` · `runs/geo_steer_v2` → `spike/spike_lf3_rl_geo.py`
+- **`--no-slow`**: power fixed at 100 (no slowing down). `ppo --mode steer_only` learns a steering correction only.
+- **Deploying to a robot**: the network becomes straight-line fixed-point code (×1000 integers), so it runs without floats on both SPIKE and EV3. The exporter computes intermediate value ranges to rule out overflow, then self-checks the generated code against the reference on 4,000 inputs including extremes.
+- **Kept training runs**: `runs/row3_res2_h16_v3` → `spike/spike_lf3_rl.py`, `ev3/ev3_lf3_rl.py` · `runs/geo_steer_v2` → `spike/spike_lf3_rl_geo.py`
 
-RL v3 (일렬 3센서, 잔차 정책) vs 규칙기반, CPU core 100월드:
+RL v3 (3 sensors in a row, residual policy) vs the rule-based program, CPU simulator, 100 worlds:
 
-| | mrc 완주 | photo 완주 |
+| | `mrc` finished | `photo` finished |
 |---|---|---|
-| 규칙기반 (당시 기본값) | 26/100 · 16.91s | 90/100 · 8.96s |
-| RL v3, 정책 계산 1ms | 52/100 · 15.75s | 98/100 · 8.71s |
+| Rule-based (defaults at the time) | 26/100 · 16.91 s | 90/100 · 8.96 s |
+| RL v3, 1 ms policy compute | 52/100 · 15.75 s | 98/100 · 8.71 s |
 
-> RL v3는 2배 기어·토크 한계 이전의 동역학으로 학습했습니다. 지금 로봇에 쓰려면 `spike_3s_geo2x` 조건으로 다시 학습해야 합니다.
-
----
-
-## 8. 실기로 보정하기
-
-- **블랙박스**: 실기 파일은 4ms마다 [센서 3개, 조향, 파워, 상태, 회전 속도]를 2초(500개) 기록해 두고, 멈추면 `BB`·`BBD` 줄로 출력합니다 → `python3.13 sim/bb_parse.py 로그.txt --events`
-- **진단**: `spike/spike_diag.py`(EV3 `ev3/ev3_diag.py`) 출력 → `python3.13 sim/diag_parse.py 로그.txt --sim spike_3s`로 실기와 시뮬의 호출 비용·센서 갱신·지연을 비교합니다.
-- **지금까지 맞춘 값**:
-  - 실기 루프 ≈ 734 제어/초
-  - 회전: 시정수 ≈0.05s, 구동 지연 ≈36ms, w_eff ≈1.5 (블랙박스 5개) → `spike_3s_geo2`
-  - 2배 기어: 제자리 회전이 붙는 속도가 1배와 비슷 → 시정수 ×3 → `spike_3s_geo2x` (실기 2배 회전 1번 기준이라 대략값)
+> RL v3 was trained on the dynamics before the 2× gearing and its torque limit. To use it on the current robot, retrain under `spike_3s_geo2x`.
 
 ---
 
-## 9. 한계
+## 8. Calibrating against a real robot
 
-- **시뮬 1등 ≠ 실기 1등.** 후보를 추리는 용도입니다.
-- 슬립은 횡가속 한계(언더스티어)만 있고, 전압 강하·바닥 마찰 편차는 도메인 랜덤화로 흡수합니다.
-- 센서는 반사광만 재현합니다. raw 모드(모드 3)·컬러는 없습니다.
-- 원(작은 루프)은 1배 `photo`에서 실기보다 훨씬 비관적입니다 (원이 실기보다 작음). 원 관련 비교는 `photo@1.3`으로 합니다.
-- 실기에서 라인 하나가 두 센서 사이에 걸치면 둘 다 30~45%로 읽혀 '가짜 직각 신호'가 생겼는데, 시뮬은 이걸 재현하지 못했습니다.
-- `spike_3s_geo2x`의 토크 한계(시정수 ×3)는 실기 2배 회전 1번에 맞춘 대략값입니다. 2초 블랙박스가 더 모이면 다시 맞춥니다.
+- **Black box**: the robot programs record [3 sensors, steering, power, state, turn rate] every 4 ms for 2 s (500 entries) and print them as `BB`/`BBD` lines when they stop → `python sim/bb_parse.py log.txt --events`
+- **Diagnostics**: run `spike/spike_diag.py` (EV3: `ev3/ev3_diag.py`) on the robot → `python sim/diag_parse.py log.txt --sim spike_3s` compares call cost, sensor refresh and latency between the robot and the simulator.
+- **Fitted so far**:
+  - Real control loop ≈ 734 updates/s
+  - Turning: time constant ≈ 0.05 s, actuation delay ≈ 36 ms, w_eff ≈ 1.5 (5 black boxes) → `spike_3s_geo2`
+  - 2× gearing: turning picks up about as fast as with 1× → time constants ×3 → `spike_3s_geo2x` (rough: based on one real 2× pivot)
+
+---
+
+## 9. Limitations
+
+- **Best in the simulator ≠ best on the robot.** Use it to shortlist candidates, then test on the robot.
+- Slip is modeled only as a lateral-acceleration limit (understeer); voltage sag and floor-friction spread are absorbed by domain randomization.
+- Sensors reproduce reflected light only — no raw mode (mode 3) and no color.
+- Small loops are much more pessimistic on the 1× `photo` track than on the real field (the loop is smaller than the real one). Compare loop behavior on `photo@1.3`.
+- On the robot, a line straddling two sensors made both read 30–45 % and produced a false right-angle signal; the simulator does not reproduce this.
+- The torque limit of `spike_3s_geo2x` (time constants ×3) is a rough fit to one real 2× pivot; it will be refit as more 2 s black boxes come in.

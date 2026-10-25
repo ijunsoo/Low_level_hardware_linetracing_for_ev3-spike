@@ -1,0 +1,7 @@
+# Optional: sim/rl (GPU-parallel sim torchsim.py, PPO training, policy export)
+#   pip install -r requirements-gpu.txt
+# Uses CUDA or Apple MPS when available, otherwise CPU. For a CUDA build of torch,
+# follow https://pytorch.org/get-started/locally/ first, then run this.
+-r requirements.txt
+# 2.4+ works with NumPy 2 (tested 2.4.1 on Python 3.9, 2.14.1 on 3.13)
+torch>=2.4

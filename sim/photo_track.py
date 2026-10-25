@@ -8,16 +8,21 @@
 # =====================================================================
 import json
 import math
+import os
+import sys
 
 import cv2
 import numpy as np
 from skimage.morphology import skeletonize
 
-WARP = "/tmp/warp_1.8.jpg"
+HERE = os.path.dirname(os.path.abspath(__file__))       # 결과는 실행 위치와 무관하게 sim/ 아래에 저장
+WARP = sys.argv[1] if len(sys.argv) > 1 else "/tmp/warp_1.8.jpg"   # 원근 보정 사진 (인자로 경로 지정 가능)
 MAT_W_MM = 1950.0   # ★실측: 경기장 가로 길이 195cm (스케일 기준)
 LINE_MM = 20.0      # 참고용(진단 출력) — 스케일 기준으로는 쓰지 않음
 
 img = cv2.imread(WARP)
+if img is None:
+    sys.exit("사진을 못 읽음: %s  (사용법: python sim/photo_track.py 워프사진.jpg)" % WARP)
 H, W = img.shape[:2]
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 line = (gray < 100).astype(np.uint8)
@@ -158,7 +163,7 @@ coarse = {"px": [round(float(rx[i]), 1) for i in coarse_i],
           "s":  [round(float(t[i]), 1) for i in coarse_i],
           "length": round(float(s[-1]), 1)}
 json.dump({"black": black, "coarse": coarse},
-          open("sim/viz/track_pts.json", "w"))
+          open(os.path.join(HERE, "viz", "track_pts.json"), "w", encoding="utf-8"))
 print("저장 완료 / 코스 길이 %.2f m" % (s[-1] / 1000))
 
 # ---- 배경: 워프 사진(180° 회전) + mm 좌표 메타 ----
@@ -169,7 +174,7 @@ ok, buf = cv2.imencode(".jpg", bg_small, [cv2.IMWRITE_JPEG_QUALITY, 70])
 meta = {"png": base64.b64encode(buf).decode(), "jpg": True,
         "x0": float(-origin[0]), "y0": float(-H * mm_per_px - origin[1]),
         "w_mm": float(W * mm_per_px), "h_mm": float(H * mm_per_px)}
-json.dump(meta, open("sim/viz/track_bg.json", "w"))
+json.dump(meta, open(os.path.join(HERE, "viz", "track_bg.json"), "w", encoding="utf-8"))
 print("배경 저장")
 
 # ---- 미리보기 ----
@@ -182,5 +187,5 @@ ax.plot(mmm[:, 0], mmm[:, 1], 'k.', ms=2)
 ax.plot(rx[0], ry[0], 'g^', ms=14)
 ax.plot(rx[-1], ry[-1], 'rx', ms=14)
 ax.set_aspect("equal"); ax.set_title("photo-traced / %.2fm" % (s[-1] / 1000))
-fig.tight_layout(); fig.savefig("sim/track_preview.png", dpi=90)
+fig.tight_layout(); fig.savefig(os.path.join(HERE, "track_preview.png"), dpi=90)
 EOF_MARKER = True

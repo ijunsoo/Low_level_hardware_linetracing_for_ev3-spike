@@ -194,7 +194,7 @@ def main():
     args = ap.parse_args()
     rng = np.random.default_rng(args.seed)
     if args.given:
-        cfgs = json.load(open(args.given))
+        cfgs = json.load(open(args.given, encoding="utf-8"))
     else:
         center = json.loads(args.center) if args.center else None
         cfgs = [{}] + ([dict(center)] if center else [])
@@ -206,7 +206,7 @@ def main():
               weff=tuple(float(x) for x in args.weff.split(",")), prof=json.loads(args.prof) if args.prof else None,
               tracks=args.tracks.split(","))
     if args.out:
-        json.dump(res, open(args.out, "w"), ensure_ascii=False)
+        json.dump(res, open(args.out, "w", encoding="utf-8"), ensure_ascii=False)
     print("E2(파일 기본값): " + fmt(res[0]))
     if args.rank == "time":
         best = sorted(range(len(res)), key=lambda i: (-res[i]["score"], sum(res[i][t]["t"] for t in TRACKS)))

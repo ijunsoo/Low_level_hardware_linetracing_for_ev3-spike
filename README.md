@@ -1,197 +1,98 @@
-# Low-level hardware line tracing for EV3 · SPIKE Prime
+# Pybricks line-following simulator · SPIKE Prime & EV3
 
-LEGO **SPIKE Prime**과 **EV3**로 만든 3센서 라인트레이서입니다.
-실기 코드를 **한 줄도 고치지 않고** 돌리는 PC 시뮬레이터(CPU·GPU)와 강화학습으로 튜닝했습니다.
+English | [한국어](README.ko.md)
 
-- **대회 규정**: Robotex 한국 레고 라인팔로잉 — 25cm 상자, 센서 4개 이하, 라인 20mm, 최소 곡률 반경 10cm, 직각·교차로
-- **주행 방침**: 파워 100 고정. 감속 없이 조향만으로 달린다 (예외: 긴 직선 끝 직각에서 50ms 브레이크)
+[![CI](https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike/actions/workflows/ci.yml/badge.svg)](https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 목차
+Run your **unmodified** [Pybricks](https://pybricks.com) line-following program on a PC, in a simulator calibrated against real LEGO SPIKE Prime and EV3 robots.
+The repository also contains the two competition robots the simulator was built for.
 
-1. [폴더 구성](#1-폴더-구성)
-2. [빠른 시작](#2-빠른-시작)
-3. [로봇과 배선](#3-로봇과-배선)
-4. [주행 원리](#4-주행-원리)
-5. [시뮬레이터 · GPU · 강화학습](#5-시뮬레이터--gpu--강화학습)
-6. [실험으로 알게 된 것](#6-실험으로-알게-된-것)
-7. [버전 기록](#7-버전-기록)
+![The EV3 competition program running on four simulated tracks](docs/img/sim_tracks.png)
 
----
+- **Your code, unchanged.** A mock `pybricks` package (hubs, pupdevices, ev3devices, iodevices, robotics, tools, parameters) lets the same file run on the robot and in the simulator.
+- **Calibrated physics.** Motor lag, turning slip, gear torque limits, sensor footprint, noise and lag, and the loop rate of real hubs — fitted to black-box logs recorded on real robots.
+- **Tracks.** Curves, right angles, competition-style tracks with crossings and loops, a track traced from a photo of a real competition field, or your own.
+- **Measure, don't guess.** Randomized worlds, paired A/B comparisons, regression tests, and a decoder for black-box logs from the real robot.
+- **GPU and RL.** A PyTorch version of the simulator runs 16,384 robots at once. Train a PPO policy and export it as integer-only Pybricks code.
 
-## 1. 폴더 구성
+## Quick start
 
-| 폴더 | 내용 |
-|---|---|
-| `spike/` | SPIKE Prime 실기 코드 |
-| `ev3/` | EV3 실기 코드 |
-| `sim/` | CPU 시뮬레이터 (실기 코드를 그대로 실행) + 분석 도구 `sim/tools/` |
-| `sim/rl/` | GPU 시뮬레이터(PyTorch) · 대규모 상수 탐색 · 강화학습(PPO) |
-| `diag_logs/` | 실기 블랙박스·진단 로그 (시뮬 보정에 사용) |
-| `docs/` | 설계 문서 |
+Python 3.9+.
 
-로봇 코드
-
-| 파일 | 용도 |
-|---|---|
-| `spike/spike_final.py`, `ev3/ev3_final.py` | **최종판** — 이것만 쓰면 됨 |
-| `spike/spike_lf3_rule_e8r10_170.py` | SPIKE 개발판 (최종판과 같은 동작, 머리말에 실험 기록) |
-| `spike/spike_lf3_rule_e8r8_170.py`, `ev3/ev3_lf3_rule_e8r8.py` | 이전 기본판 (시뮬 실험 도구들의 기준) |
-| `spike/spike_lf3_rule.py`, `ev3/ev3_lf3_rule.py` | 시뮬·강화학습의 기준 규칙 파일 (회귀 테스트·GPU 시뮬이 상수를 읽음) |
-| `spike/spike_lf3_rl.py`, `spike/spike_lf3_rl_geo.py`, `ev3/ev3_lf3_rl.py` | 강화학습 정책을 내보낸 실기 파일 |
-| `*_value.py`, `spike_hub_test.py`, `*_diag.py` | 빛값 측정 · 허브 점검 · 시뮬 보정용 진단 |
-
-> 예전 버전(E4~E8R9, 4센서 시절 v1~v16)은 첫 커밋 `e082b29`의 기록에 있습니다.
-
----
-
-## 2. 빠른 시작
-
-**최종판 하나만 쓰면 됩니다. 맨 아래 한 줄만 바꿉니다.**
-
-1. **빛값 재기** — 경기장 매트·조명에서, 로봇을 바닥에 댄 채 센서 3개가 라인을 완전히 지나가게 좌우로 여러 번 쓸어 줍니다.
-   - SPIKE: `spike/spike_value.py`를 `RAW_MODE = True`로 실행 → 빨간 불 4초 동안 쓸기 → `VALUE = [...]`
-   - EV3: `ev3/ev3_value.py`를 그대로 실행 → 빨간 불 4초 동안 쓸기 → `VALUE = [...]` (RGB 반사광 %)
-2. **붙여 넣기** — `VALUE`는 최종판 맨 아래 줄의 `VALUE=[...]`에 넣습니다.
-   EV3를 빨간 불로 달릴 땐 두 파일 다 `RED_LIGHT = True` → 측정 코드가 주는 `VALUE_RED`·`VALUE0` 줄을 최종판 고급 설정에 넣습니다.
-3. **출발** — 로봇을 라인 위에 놓고(가운데 센서는 라인, 좌우는 흰 바닥) 실행하면, 센서가 준비되는 대로 출발합니다.
-4. **기록 보기** — 연습 땐 `AUTO_STOP=True`: 라인을 오래 잃으면 멈추고 마지막 2초 블랙박스를 출력합니다.
-   `python3 sim/bb_parse.py 로그.txt --events`로 해석합니다. **대회 땐 `AUTO_STOP=False`.**
-
-SPIKE 최종판의 마지막 줄:
-
-```python
-line_trace(VALUE=[68, 12, 72, 12, 116, 12], POWER=100, KP=0.088, KP2=0.433, KG=209, ST_BANK=75, ST_BANK_STR=100, RA_YAW=300, BRK_MS=50, AUTO_STOP=True, BB_PRINT=True)
+```bash
+git clone https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike.git
+cd Low_level_hardware_linetracing_for_ev3-spike
+pip install -r requirements.txt
+python sim/run_sim.py examples/spike_simple_follower.py --profile spike_3s_geo2 --track main
 ```
 
-| 값 | 뜻 | 이럴 때 바꾸기 |
-|---|---|---|
-| `VALUE` | 빛값 [흰, 검] × (좌, 우, 가운데) | 매트·조명·센서 높이가 바뀌면 다시 잼 |
-| `POWER` | 속도 | 기본 100 |
-| `KP` / `KP2` | 직선 / 곡선 조향 세기 | 곡선 바깥으로 밀리면 `KP2` ↑ |
-| `KG` | 흔들림 잡기 | 직선에서 좌우로 출렁이면 ↑ |
-| `ST_BANK` | 곡선에서 라인을 놓쳤을 때 강제 회전 세기 | 원에서 휘두르면 ↓, 급커브에서 밀리면 ↑ (SPIKE 75 · EV3 85) |
-| `ST_BANK_STR` | 직진하다 놓쳤을 때(직각) 회전 세기 | 100 = 제자리 회전 |
-| `RA_YAW` | 직각에서 도는 빠르기 상한 (°/s) | 직각을 지나쳐 너무 돌면 ↓ |
-| `BRK_MS` | 긴 직선 끝 직각 브레이크 (ms) | 0 = 끔 |
-| `AUTO_STOP` | 자동 정지 | 연습 `True` / 대회 `False` |
-| `BB_PRINT` | 멈출 때 블랙박스 출력 | `False`면 바로 끝남 |
-| `YAW_ENC_K` (EV3만) | 모터 각도 → 회전 환산 | 기어 20:12면 245, 2배면 490 |
+```text
+running: .../examples/spike_simple_follower.py / track: main / profile: spike_3s_geo2
+result: {'reason': 'finish', 'time_s': 4.347, 'progress_mm': 2136.3, 'track_mm': 2174.3, 'mean_lat_mm': 17.23}
+plot saved: sim_result.png
+```
 
-화면과 불빛
+For EV3: `python sim/run_sim.py examples/ev3_simple_follower.py --profile ev3_3s_geo --track main`. More in [`examples/`](examples/).
 
-- **SPIKE 화면**: `S` 시작 · `P` 장치 재연결 · `W` 센서 기다림 · `E` 오류 · `B` 기록 출력 중 (꺼지면 다시 실행 가능)
-- **EV3 화면**: `START` · `PORT WAIT` · `SENSOR CHECK` · `WAIT` · `READY` · `ERROR` · `LOG...` → `DONE`
-- **주행 중 불빛**: 빨강 = 코너 예고 · 초록 = 라인 다시 찾음 · 노랑 = 강제 회전
+## Run your own program
 
----
+1. Write a normal Pybricks program for SPIKE Prime or EV3.
+2. Pick a robot profile whose ports match your wiring (`python sim/run_sim.py --list`), or [describe your own robot](docs/SIM_API.md).
+3. Run it:
 
-## 3. 로봇과 배선
+   ```bash
+   python sim/run_sim.py my_program.py --profile spike_3s_geo --track main
+   ```
+
+The run ends with `finish`, `lost`, `timeout` or `stall`, and a plot is saved to `sim_result.png` (`--no-plot` to skip).
+Useful options: `--track photo@1.3` (scaled photo track), `--offset 20` (start beside the line), `--seed 3` (other sensor noise), `--lost 450` (more room before 'lost'), `--sub "OLD=>NEW"` (change a constant without editing the file).
+
+What the mock supports — and what it doesn't — is listed in [`docs/SIM_API.md`](docs/SIM_API.md).
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [`sim/README.md`](sim/README.md) | Simulator guide: profiles, tracks, evaluation tools, regression tests, GPU simulator and RL, calibration, limitations |
+| [`docs/SIM_API.md`](docs/SIM_API.md) | Supported Pybricks API, robot profile keys, track format |
+| [`examples/`](examples/) | Short beginner programs that run in the simulator and on the robot |
+| [`README.ko.md`](README.ko.md) | Korean: the competition robots, wiring, how they drive, experiment results |
+
+## The robots in this repository
+
+Two robots for the Robotex Korea LEGO line-following competition (20 mm line, right angles, crossings, loops), both with three EV3 color sensors in a row, 23 mm apart and 170 mm ahead of the axle.
+They always drive at full power and steer only; the one exception is a 50 ms brake before a right angle at the end of a long straight.
 
 | | SPIKE Prime | EV3 |
 |---|---|---|
-| 펌웨어 | Pybricks | Pybricks v4 |
-| 컬러센서 (EV3 컬러센서 3개) | C 좌 · A 가운데 · B 우 | S1 좌 · S2 가운데 · S3 우 |
-| 센서 읽기 (최종판) | `PUPDevice` 모드 3 — raw 반사광, 빨간 불 | `ColorSensor.reflection()` — RGB 반사광 (`RED_LIGHT = True`면 `LUMPDevice` 모드 3 빨간 불) |
-| 구동 모터 | E 좌 · F 우 | A·B 좌 · C·D 우 |
-| 회전 속도 | 허브 IMU | 좌우 모터 각도 차 (자이로 없음) |
+| Final program | [`spike/spike_final.py`](spike/spike_final.py) | [`ev3/ev3_final.py`](ev3/ev3_final.py) |
+| Light-value tool | [`spike/spike_value.py`](spike/spike_value.py) | [`ev3/ev3_value.py`](ev3/ev3_value.py) |
+| Sensor reading | EV3 color sensors through `PUPDevice`, raw red reflection | `ColorSensor.reflection()` (RGB) by default |
 
-- **센서 배치**: 일렬 23mm 간격, 바퀴축 앞 170mm
-- **차체**: 바퀴 80mm, 윤거 205mm, 앞쪽 볼 캐스터
-- **기어**: 20:12를 다시 2배로 → 직진 약 2.4m/s
-- **EV3 센서 빛**: Pybricks 4.1부터 `ColorSensor.reflection()`은 빨강·초록·파랑 세 색으로 잰 반사광의 평균입니다 (그래서 컬러빛이 깜빡임). 실기에서 빨간 불 반사광보다 라인을 잘 따라가서 EV3 최종판은 이걸 기본으로 씁니다 (아래 "그 밖의 발견").
+Everything a student needs to change is in the last line of each final program. The robot code comments are in Korean; the details are in [`README.ko.md`](README.ko.md).
 
----
+Some findings from the simulator and the robots:
 
-## 4. 주행 원리
+- Doubling the gear ratio did not make pivots faster on the real robot — the motors run out of torque — so the 2× model (`spike_3s_geo2x`) slows turning down to match.
+- Robots get trapped in small loops when the sensor arm (170 mm) is longer than the loop radius; whether the second turn catches the exit at the crossing decides it.
+- On the EV3, RGB reflection followed the line better than raw red reflection, even with both calibrated.
 
-- **오차** — 세 센서 진하기의 무게중심으로 라인 위치(mm)를 구한다.
-- **조향** — 오차 × 게인 + 자이로 감쇠. 한쪽으로 오래 도는 곡선일수록 게인을 키운다 (게인 스케줄링).
-- **라인을 놓치면** — 마지막으로 본 쪽으로 강제 회전. 직진 중에 놓치면(직각) 제자리 회전하되 회전 속도 상한을 둔다.
-- **직각 예고** — 직진 중 가운데와 한쪽 옆이 함께 진한 검정이면 미리 꺾고, 긴 직선 뒤면 50ms 브레이크.
-- **교차로** — 양옆이 함께 검정이면 직진.
-- **안전장치** — 센서가 0이면 출발하지 않고 기다린다(모드를 바꿔 깨우고, 3초 뒤 반사광 %로 전환). 멈추면 모터부터 세우고 블랙박스를 출력한다.
+## Repository layout
 
----
-
-## 5. 시뮬레이터 · GPU · 강화학습
-
-자세한 사용법은 [`sim/README.md`](sim/README.md)에 있습니다.
-
-### CPU 시뮬레이터 — `sim/core.py`
-
-실기 Pybricks 코드를 그대로 실행합니다. 모터 지연, 센서 발자국·노이즈·지연, 실측 루프 속도, 회전 미끄러짐을 반영합니다.
-실기 블랙박스로 맞춘 기본 모델은 `spike_3s_geo2`(1배 기어)와 `spike_3s_geo2x`(2배 기어, 토크 한계 반영)입니다.
-
-```bash
-python3.13 sim/run_sim.py spike/spike_lf3_rule.py --profile spike_3s_geo2 --track photo   # 한 번 달려 보기
-python3.13 sim/regress.py                                                                 # 회귀 테스트 (15건)
-```
-
-### GPU 시뮬레이터 — `sim/rl/torchsim.py`
-
-같은 물리를 PyTorch(Apple GPU)로 16,384대 동시에 돌립니다 (약 65만 결정/초).
-`sim/rl/sweep_gpu.py`로 규칙기반 상수를 수천 설정씩 탐색합니다.
-
-### 강화학습 — `sim/rl/ppo.py`
-
-규칙기반 조향 위에 작은 신경망(잔차 정책)을 PPO로 학습합니다.
-`sim/rl/export_policy.py`가 정수 연산 Pybricks 코드로 내보냅니다 (`spike/spike_lf3_rl.py`, `ev3/ev3_lf3_rl.py`).
-
-```bash
-cd sim
-~/.venvs/linefollowing/bin/python -m rl.sweep_gpu --n 192 --no-slow               # GPU 상수 탐색
-~/.venvs/linefollowing/bin/python -m rl.ppo --layout row3 --mode steer_only        # 강화학습
-~/.venvs/linefollowing/bin/python -m rl.export_policy rl/runs/<이름>/policy.pt     # 실기 파일로 내보내기
-```
-
----
-
-## 6. 실험으로 알게 된 것
-
-시뮬 숫자는 후보를 추리는 용도라 실기와 다를 수 있습니다.
-
-### 원(작은 루프)에서 갇히는 이유
-
-원 반지름(약 12cm)이 센서 팔(17cm)보다 작아서 원을 계속 따라갈 수 없습니다.
-몸은 원 안을 돌고 센서는 원 밖을 쓸다가, **두 번째 회전에서 교차점의 출구 선을 잡아야** 빠져나갑니다.
-그래서 팔이 원 중심에서 교차점까지 거리(약 17cm)만큼은 돼야 합니다.
-
-| 실기 크기 원, 2배 기어 (토크 반영 시뮬, 같은 월드 48개) | 위 원 | 아래 원 |
-|---|---|---|
-| 센서 17cm, 강제 회전 85 (E8R8) | 67% | 90% |
-| 센서 17cm, 강제 회전 75 (E8R10 = 최종판) | 79% | 77% |
-
-- 센서를 15cm로 당기면(강제 회전 85) 위 79%·아래 100%였습니다 (따로 돌린 32월드 실험).
-- 원 끝에서 같은 방향 회전을 막는 대책은 교차점까지 돌지 못해 오히려 나빴습니다.
-- 그림: [`sim/runs_geo/loop_arm_170_vs_150.png`](sim/runs_geo/loop_arm_170_vs_150.png), [`sim/runs_geo/loop_trap_170.png`](sim/runs_geo/loop_trap_170.png)
-
-### 그 밖의 발견
-
-- **2배 기어는 토크가 절반** — 실기에서 제자리 회전이 붙는 속도가 1배와 비슷했습니다. 그래서 곡선에서만 빨라지고 원·직각에서는 손해입니다. 시뮬에서 기어비만 바꾸면 회전이 두 배 빨리 붙어서, 토크 한계를 넣은 `spike_3s_geo2x`로 평가합니다.
-- **강제 회전 85 → 75 (SPIKE)** — 사진 트랙 완주 9 → 13/48, 완만한 곡선 0.31초 빠름, 급커브 0.08초 느림. EV3(1배)는 75로 내리면 손해라 85.
-- **센서 4개** — 4개 일렬로 옮기면 직각이 0.2~0.3초 느려졌습니다. 4번째 센서를 읽는 비용 자체(루프 3.5%)는 영향이 거의 없었습니다. → 3개 유지.
-- **블랙박스와 정지 버튼** — PC가 연결돼 있으면 `print`는 다 보낼 때까지 기다리고, 정지 버튼은 모터를 세우지 않습니다. 그래서 멈추면 모터부터 세우고 기록은 2초 분량만 출력합니다.
-- **루프 속도** — 초당 650~1,900회 범위에서 직각 지나침에 영향이 없었습니다. 지나침은 기계적인 회전 지연 때문입니다.
-- **EV3는 RGB 반사광이 빨간 불보다 나음** — 빛값을 EV3에서 실측해 맞춰도(`[87, 17, 121, 21, 121, 19]`) 빨간 불 raw가 RGB보다 라인을 못 따라갔습니다 (실기 2026-10-24). 실기 블랙박스에서 센서가 라인 가장자리를 지날 때 4ms 뒤에도 값이 그대로인 비율이 RGB(EV3) 15%, 빨간 불(SPIKE) 35~38%라서 빨간 불 모드 값이 더 늦게 갱신될 가능성이 있습니다 (로봇이 달라 확정은 아님). 좌 센서도 빨간 빛에서만 28% 약했습니다 (RGB는 10%). → EV3 최종판은 RGB 기본, `RED_LIGHT = True`로 빨간 불.
-
----
-
-## 7. 버전 기록
-
-| 버전 | 바뀐 점 |
+| Folder | Contents |
 |---|---|
-| E7 | 곡선 게인 스케줄링 |
-| E8 | 라인을 놓친 뒤 강제 회전까지 기다리는 시간 24 → 2ms (턴 뒤 경직 해소) |
-| E8R ~ R4 | 2배 기어용: 직진 중 놓치면 제자리 회전 + 회전 속도 상한, 직각 신호를 보면 미리 꺾기 |
-| E8R5 ~ R7 | 직각 브레이크 (긴 직선 뒤에만, 50ms), 직각 신호 판정 엄격화, 출발 대기 |
-| E8R8 | 멈춘 뒤 정리: 모터 먼저 정지, 블랙박스 2초, 출력 중 표시 |
-| E8R10 | 곡선 강제 회전 85 → 75 |
-| **최종판** | 바꿀 값을 맨 아래 한 줄로, 꺼진 실험 옵션 삭제 (시뮬에서 개발판과 결과 동일), EV3는 RGB 반사광 기본 (빨간 불은 `RED_LIGHT`) |
+| `sim/` | Simulator, tools, regression tests; `sim/rl/` GPU simulator and RL |
+| `spike/`, `ev3/` | Robot programs |
+| `examples/` | Beginner examples |
+| `docs/` | Reference documents and figures |
+| `diag_logs/` | Black-box and diagnostic logs from the real robots |
 
----
+## Contributing
 
-## 개발 환경
+Issues and pull requests are welcome, in English or Korean.
+Before opening a pull request, run `python sim/regress.py`; CI runs it on every push.
 
-- **CPU 시뮬**: Python 3.13 + numpy
-- **GPU·강화학습**: `~/.venvs/linefollowing` — numpy, torch(MPS), mpy-cross
-- **그림**: matplotlib가 있는 파이썬
+## License
+
+[MIT](LICENSE)

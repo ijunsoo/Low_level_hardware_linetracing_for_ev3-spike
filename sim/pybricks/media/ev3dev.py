@@ -16,7 +16,7 @@ _STUBS = {"SoundFile": _Names(), "ImageFile": _Names(), "Font": _Names(),
 def __getattr__(name):
     api = core.SIM.p.get("pybricks_api", "v4") if core.SIM else "v4"
     if api != "v2":
-        raise ImportError("pybricks.media.ev3dev는 Pybricks %s에 없음 (v2/ev3dev 전용)" % api)
+        raise ImportError("pybricks.media.ev3dev is not in Pybricks %s (only in v2 / ev3dev)" % api)
     if name in _STUBS:
         return _STUBS[name]
     raise AttributeError(name)
