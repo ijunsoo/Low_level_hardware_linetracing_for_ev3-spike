@@ -42,3 +42,7 @@ jobs:
       # Exit code is 0 whether the run finishes, times out or loses the line; non-zero only on a crash
       - name: Smoke run (EV3 final program)
         run: python sim/run_sim.py ev3/ev3_final.py --profile ev3_3s_geo --track main --no-plot --limit 20
+
+      # Fails if a program in the browser menu no longer matches its simulator adjustments
+      - name: Build the browser simulator
+        run: python web/build.py --out _site

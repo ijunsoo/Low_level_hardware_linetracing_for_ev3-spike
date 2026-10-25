@@ -5,6 +5,8 @@
 LEGO **SPIKE Prime**과 **EV3**로 만든 3센서 라인트레이서입니다.
 실기 코드를 **한 줄도 고치지 않고** 돌리는 PC 시뮬레이터(CPU·GPU)와 강화학습으로 튜닝했습니다.
 
+**▶ [브라우저에서 바로 실행](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — 설치 없이 프로그램을 고르거나 붙여 넣고, 로봇·트랙을 골라 달리는 모습을 봅니다 (무작위 월드 8개 시험 포함).
+
 - **대회 규정**: Robotex 한국 레고 라인팔로잉 — 25cm 상자, 센서 4개 이하, 라인 20mm, 최소 곡률 반경 10cm, 직각·교차로
 - **주행 방침**: 파워 100 고정. 감속 없이 조향만으로 달린다 (예외: 긴 직선 끝 직각에서 50ms 브레이크)
 
@@ -30,6 +32,7 @@ LEGO **SPIKE Prime**과 **EV3**로 만든 3센서 라인트레이서입니다.
 | `sim/rl/` | GPU 시뮬레이터(PyTorch) · 대규모 상수 탐색 · 강화학습(PPO) |
 | `diag_logs/` | 실기 블랙박스·진단 로그 (시뮬 보정에 사용) |
 | `examples/` | 처음 쓰는 사람용 짧은 예제 (영어 주석, 시뮬에서 바로 실행) |
+| `web/` | 브라우저 시뮬레이터 (Pyodide로 같은 파이썬 시뮬을 웹에서) — `python web/build.py`로 빌드, push하면 GitHub Pages로 배포 |
 | `docs/` | 설계 문서, 시뮬 API·프로파일·트랙 설명(`SIM_API.md`, 영어) |
 
 시뮬 설치: `pip install -r requirements.txt` (GPU·강화학습은 `requirements-gpu.txt`) · 라이선스: MIT

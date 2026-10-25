@@ -18,3 +18,7 @@ _archive/
 # 학생용 키트와 나눠 줄 압축 파일 (로컬에서만 씀, GitHub에는 안 올림)
 student/
 dist/
+
+# web/build.py가 만드는 브라우저 시뮬 빌드 결과
+web/dist/
+.claude/
