@@ -5,23 +5,31 @@ English | [한국어](README.ko.md)
 [![CI](https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike/actions/workflows/ci.yml/badge.svg)](https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Run your **unmodified** [Pybricks](https://pybricks.com) line-following program on a PC, in a simulator calibrated against real LEGO SPIKE Prime and EV3 robots.
-The repository also contains the two competition robots the simulator was built for.
+Run your **unmodified** [Pybricks](https://pybricks.com) line-following program on a PC or in a web browser.
+The simulator is calibrated against real LEGO SPIKE Prime and EV3 robots.
 
-**▶ [Try it in your browser](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — no install: pick a program or paste your own, change the robot's shape, pick or build an arena, and watch it drive.
+**▶ [Open the browser simulator](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — nothing to install.
 
 ![The EV3 competition program running on four simulated tracks](docs/img/sim_tracks.png)
 
-- **Your code, unchanged.** A mock `pybricks` package (hubs, pupdevices, ev3devices, iodevices, robotics, tools, parameters) lets the same file run on the robot and in the simulator.
-- **Calibrated physics.** Motor lag, turning slip, gear torque limits, sensor footprint, noise and lag, and the loop rate of real hubs — fitted to black-box logs recorded on real robots.
-- **Tracks.** Curves, right angles, competition-style tracks with crossings and loops, a track traced from a photo of a real competition field, or your own.
-- **Measure, don't guess.** Randomized worlds, paired A/B comparisons, regression tests, and a decoder for black-box logs from the real robot.
-- **GPU and RL.** A PyTorch version of the simulator runs 16,384 robots at once. Train a PPO policy and export it as integer-only Pybricks code.
-- **In the browser.** The same Python simulator runs in a web page with [Pyodide](https://pyodide.org): live animation, sensor readings, motor plots, a test in 8 randomized worlds, a robot editor and an arena editor.
+**Contents** · [Features](#features) · [Quick start](#quick-start) · [Run your own program](#run-your-own-program) · [Browser simulator](#browser-simulator) · [The competition robots](#the-competition-robots) · [Documentation](#documentation) · [Repository layout](#repository-layout)
+
+## Features
+
+| Feature | Details |
+|---|---|
+| **Your code, unchanged** | A mock `pybricks` package runs the same file on the robot and in the simulator. |
+| **Calibrated to real robots** | Motor lag, turning slip, gear ratio, sensor footprint, sensor noise and lag, and the hub's loop rate are fitted to black-box logs from real robots. |
+| **Many tracks** | Curves, right angles, crossings and loops, a competition field traced from a photo, random competition arenas, or your own. |
+| **Measured, not guessed** | Randomized worlds, paired A/B comparisons, regression tests, and a decoder for the robot's black-box logs. |
+| **GPU and RL** | A PyTorch version runs 16,384 robots at once. Train a PPO policy and export it as integer-only Pybricks code. |
+| **In the browser** | The same Python simulator runs in a web page with [Pyodide](https://pyodide.org), with a robot editor and an arena editor. |
 
 ## Quick start
 
-Python 3.9+.
+**In the browser:** [open the simulator](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/), pick a program and press **▶ Run**.
+
+**On a PC** (Python 3.9 or newer):
 
 ```bash
 git clone https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike.git
@@ -30,44 +38,99 @@ pip install -r requirements.txt
 python sim/run_sim.py examples/spike_simple_follower.py --profile spike_3s_geo2 --track main
 ```
 
+It prints the result and saves a plot:
+
 ```text
-running: .../examples/spike_simple_follower.py / track: main / profile: spike_3s_geo2
 result: {'reason': 'finish', 'time_s': 4.347, 'progress_mm': 2136.3, 'track_mm': 2174.3, 'mean_lat_mm': 17.23}
 plot saved: sim_result.png
 ```
 
-For EV3: `python sim/run_sim.py examples/ev3_simple_follower.py --profile ev3_3s_geo --track main`. More in [`examples/`](examples/).
-
-## Browser simulator
-
-[Open it](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/), or run it locally:
-
-```bash
-python web/build.py                                   # → web/dist/
-python -m http.server 8000 --directory web/dist       # then open http://localhost:8000
-```
-
-It is the repository's own simulator (`sim/core.py` and the Pybricks mock) running in a Web Worker with Pyodide, so results match the PC.
-The program menu has both competition programs, the reinforcement-learning policy and the examples; GitHub Actions rebuilds and publishes it on every push (`.github/workflows/pages.yml`).
-
-- **Robot editor** — sensors (how many, where, which port, white/black brightness), wheel diameter, wheel spacing, gear ratio and motor ports, with a live top view. A quick-layout helper puts N sensors in a row.
-- **Arenas** — the built-in tracks, endless random arenas generated from the competition rules (pick a number), and an arena editor: write the route piece by piece (`S 500` straight, `A 150 90` curve, `T -90` sharp corner, `M x1 y1 x2 y2` marker), preview it, save it, and share it as a JSON file.
-- Your robots and arenas are saved in your browser.
+For EV3, run `examples/ev3_simple_follower.py` with `--profile ev3_3s_geo`. More examples are in [`examples/`](examples/).
 
 ## Run your own program
 
 1. Write a normal Pybricks program for SPIKE Prime or EV3.
-2. Pick a robot profile whose ports match your wiring (`python sim/run_sim.py --list`), or [describe your own robot](docs/SIM_API.md).
+2. Pick a robot profile that matches your wiring (`python sim/run_sim.py --list`), or [describe your own robot](docs/SIM_API.md).
 3. Run it:
 
    ```bash
    python sim/run_sim.py my_program.py --profile spike_3s_geo --track main
    ```
 
-The run ends with `finish`, `lost`, `timeout` or `stall`, and a plot is saved to `sim_result.png` (`--no-plot` to skip).
-Useful options: `--track photo@1.3` (scaled photo track), `--offset 20` (start beside the line), `--seed 3` (other sensor noise), `--lost 450` (more room before 'lost'), `--sub "OLD=>NEW"` (change a constant without editing the file).
+Every run ends with one of these results:
 
-What the mock supports — and what it doesn't — is listed in [`docs/SIM_API.md`](docs/SIM_API.md).
+| Result | Meaning |
+|---|---|
+| `finish` | Reached the end of the track. |
+| `lost` | Went more than 200 mm from the line. |
+| `timeout` | Hit the time limit (60 s by default). |
+| `stall` | The program kept looping without waiting, so simulated time stopped. |
+
+Useful options:
+
+| Option | Effect |
+|---|---|
+| `--track photo@1.3` | Pick a track; `@1.3` scales it. `--list` shows the tracks. |
+| `--offset 20` | Start 20 mm beside the line. |
+| `--seed 3` | Use different sensor noise. |
+| `--lost 450` | Allow 450 mm before `lost`. |
+| `--sub "OLD=>NEW"` | Change text in the program without editing the file. |
+| `--no-plot` | Skip the plot (no matplotlib needed). |
+
+What the mock supports, and what it doesn't, is listed in [`docs/SIM_API.md`](docs/SIM_API.md).
+
+## Browser simulator
+
+The page runs the repository's own simulator (`sim/core.py` and the Pybricks mock) in a Web Worker with Pyodide, so results match the PC.
+
+- **Programs:** both competition programs, the reinforcement-learning policy and the examples. You can also paste your own.
+- **Robot editor:** sensors (number, position, port, white and black brightness), wheel size, wheel spacing, gear ratio and motor ports, with a live top view.
+- **Arenas:** the built-in tracks, random competition arenas (pick a number), or your own.
+- **Testing:** run once and watch, or test in 8 randomized worlds.
+- **Saving:** your robots and arenas stay in your browser. Arenas can be shared as JSON files.
+
+In the arena editor, write the route one piece per line. It starts at (0, 0), heading right.
+
+| Line | Piece |
+|---|---|
+| `S 500` | Straight, 500 mm. |
+| `A 150 90` | Curve with a 150 mm radius, 90° to the left (negative = right). |
+| `T -90` | Sharp corner: turn 90° right on the spot. |
+| `M x1 y1 x2 y2` | Marker line that the robot does not follow (the sensors see it). |
+| `W 20` | Line width, 20 mm. |
+| `# ...` | Comment. |
+
+To run the page locally:
+
+```bash
+python web/build.py                                   # → web/dist/
+python -m http.server 8000 --directory web/dist       # then open http://localhost:8000
+```
+
+GitHub Actions rebuilds and publishes the page on every push to `main` ([`pages.yml`](.github/workflows/pages.yml)).
+
+## The competition robots
+
+The simulator was built for two robots in the Robotex Korea LEGO line-following competition (20 mm line, right angles, crossings and loops).
+
+- Both have three EV3 color sensors in a row, 23 mm apart and 170 mm ahead of the axle.
+- They always drive at full power and only steer. The one exception is a 50 ms brake before a right angle at the end of a long straight.
+
+| | SPIKE Prime | EV3 |
+|---|---|---|
+| Final program | [`spike/spike_final.py`](spike/spike_final.py) | [`ev3/ev3_final.py`](ev3/ev3_final.py) |
+| Light-value tool | [`spike/spike_value.py`](spike/spike_value.py) | [`ev3/ev3_value.py`](ev3/ev3_value.py) |
+| Sensor reading | EV3 color sensors through `PUPDevice`, raw red reflection | `ColorSensor.reflection()` (RGB) by default |
+
+Everything a student needs to change is in the last line of each final program.
+The code comments are in Korean. [`README.ko.md`](README.ko.md) has the wiring, the settings and the experiment results.
+
+### What we learned
+
+- **Small loops can trap the robot** when the sensor arm (170 mm) is longer than the loop radius. Whether the second turn catches the exit at the crossing decides it.
+- **2× gears did not make pivots twice as fast** on the real robot. The 2× model (`spike_3s_geo2x`) slows turning down to match a real pivot.
+- **Turning depends on tire slip.** The motor is publicly characterized and matches the simulator, but tire slip has to come from black-box logs ([physics engine review](docs/PHYSICS_ENGINE.md)).
+- **On the EV3, RGB reflection followed the line better** than raw red reflection, even with both calibrated.
 
 ## Documentation
 
@@ -77,26 +140,7 @@ What the mock supports — and what it doesn't — is listed in [`docs/SIM_API.m
 | [`docs/SIM_API.md`](docs/SIM_API.md) | Supported Pybricks API, robot profile keys, track format |
 | [`docs/PHYSICS_ENGINE.md`](docs/PHYSICS_ENGINE.md) | Would a physics engine make the simulator match the real robot? Public motor data, MuJoCo tests, what still has to come from black boxes |
 | [`examples/`](examples/) | Short beginner programs that run in the simulator and on the robot |
-| [`README.ko.md`](README.ko.md) | Korean: the competition robots, wiring, how they drive, experiment results |
-
-## The robots in this repository
-
-Two robots for the Robotex Korea LEGO line-following competition (20 mm line, right angles, crossings, loops), both with three EV3 color sensors in a row, 23 mm apart and 170 mm ahead of the axle.
-They always drive at full power and steer only; the one exception is a 50 ms brake before a right angle at the end of a long straight.
-
-| | SPIKE Prime | EV3 |
-|---|---|---|
-| Final program | [`spike/spike_final.py`](spike/spike_final.py) | [`ev3/ev3_final.py`](ev3/ev3_final.py) |
-| Light-value tool | [`spike/spike_value.py`](spike/spike_value.py) | [`ev3/ev3_value.py`](ev3/ev3_value.py) |
-| Sensor reading | EV3 color sensors through `PUPDevice`, raw red reflection | `ColorSensor.reflection()` (RGB) by default |
-
-Everything a student needs to change is in the last line of each final program. The robot code comments are in Korean; the details are in [`README.ko.md`](README.ko.md).
-
-Some findings from the simulator and the robots:
-
-- Doubling the gear ratio did not make pivots faster on the real robot — the motors run out of torque — so the 2× model (`spike_3s_geo2x`) slows turning down to match.
-- Robots get trapped in small loops when the sensor arm (170 mm) is longer than the loop radius; whether the second turn catches the exit at the crossing decides it.
-- On the EV3, RGB reflection followed the line better than raw red reflection, even with both calibrated.
+| [`README.ko.md`](README.ko.md) | Korean: the competition robots, wiring, settings, how they drive, experiment results |
 
 ## Repository layout
 
@@ -105,14 +149,14 @@ Some findings from the simulator and the robots:
 | `sim/` | Simulator, tools, regression tests; `sim/rl/` GPU simulator and RL |
 | `spike/`, `ev3/` | Robot programs |
 | `examples/` | Beginner examples |
-| `web/` | Browser simulator (Pyodide) — `web/build.py` builds it |
+| `web/` | Browser simulator (Pyodide), built by `web/build.py` |
 | `docs/` | Reference documents and figures |
 | `diag_logs/` | Black-box and diagnostic logs from the real robots |
 
 ## Contributing
 
 Issues and pull requests are welcome, in English or Korean.
-Before opening a pull request, run `python sim/regress.py`; CI runs it on every push.
+Before opening a pull request, run `python sim/regress.py`; CI also runs it on every push.
 
 ## License
 
