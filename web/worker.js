@@ -1,6 +1,7 @@
 // Web Worker: runs the Python simulator in Pyodide so the page stays responsive.
-// Messages in:  {type: "init"} · {type: "track", track, profile} · {type: "run", ...} · {type: "eval", ...}
-// Messages out: ready · track · robot · frames · console · result · world · eval_done · error
+// Robots and arenas are passed as JSON text (see web/runner.py).
+// Messages in:  init · track {arena, robot} · fields {name} · random {level, seed} · run {...} · eval {...}
+// Messages out: status · ready · track · fields · randomSpec · robot · frames · console · result · world · eval_done · error
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
 importScripts(PYODIDE_URL + "pyodide.js");
 
@@ -37,17 +38,25 @@ self.onmessage = async (e) => {
     if (m.type === "init") {
       await init();
     } else if (m.type === "track") {
-      const t = call("track_image", { name: m.track, profile: m.profile });
-      postMessage({ type: "track", track: m.track, profile: m.profile, image: t });
+      const t = call("track_image", { arena_json: m.arena, robot_json: m.robot });
+      postMessage({ type: "track", key: m.key, image: t });
+    } else if (m.type === "fields") {
+      postMessage({ type: "fields", name: m.name, fields: JSON.parse(call("robot_fields", { name: m.name })) });
+    } else if (m.type === "builtin") {
+      postMessage({ type: "builtinSpec", name: m.name, spec: JSON.parse(call("builtin_spec", { name: m.name })) });
+    } else if (m.type === "random") {
+      postMessage({ type: "randomSpec", level: m.level, seed: m.seed, spec: JSON.parse(call("random_spec", { level: m.level, seed: m.seed })) });
     } else if (m.type === "run") {
       call("run_program", {
-        code: m.code, profile: m.profile, track: m.track, offset: m.offset, seed: m.seed,
-        lost: m.lost, limit: m.limit,
+        code: m.code, robot: m.robot, arena_: m.arena, offset: m.offset, seed: m.seed, lost: m.lost, limit: m.limit,
       });
     } else if (m.type === "eval") {
-      call("evaluate", { code: m.code, profile: m.profile, track: m.track, worlds: m.worlds, lost: m.lost, limit: m.limit });
+      call("evaluate", { code: m.code, robot: m.robot, arena_: m.arena, worlds: m.worlds, lost: m.lost, limit: m.limit });
     }
   } catch (err) {
-    postMessage({ type: "error", message: String(err && err.message ? err.message : err) });
+    const msg = String(err && err.message ? err.message : err);
+    // Python errors arrive as a full traceback: keep the last line (the error itself) for the page
+    const last = msg.trim().split("\n").pop();
+    postMessage({ type: "error", context: m.type, key: m.key, message: last, detail: msg });
   }
 };

@@ -1,5 +1,13 @@
 # Browser runner: runs a Pybricks program on the simulator (sim/core.py + the pybricks mock) inside
 # Pyodide and streams the run to the page. Loaded by web/worker.js; the sim files live in /sim.
+#
+# Robots and arenas arrive as JSON text:
+#   robot  "spike_3s_geo2"                       a built-in profile
+#          {"base": "spike_3s_geo2", "overrides": {...profile keys...}}   a robot made in the page
+#   arena  "main"                                a built-in track
+#          {"random": {"level": "hard", "seed": 7}}                       a random competition-rule arena
+#          {"spec": {"segs": [["S", 500], ["A", 150, 90], ["T", -90]], "extras": [[[x, y], [x, y]]]}}
+import json
 import math
 import sys
 import traceback
@@ -12,6 +20,10 @@ from pyodide.ffi import to_js            # noqa: E402
 
 STREAM_EVERY_S = 0.05                    # send new trace rows every this much simulated time
 MAX_CONSOLE = 400                        # program output lines kept per run
+MAX_PATH_MM = 60000                      # an arena's line may be at most 60 m long …
+MAX_SPAN_MM = 12000                      # … and fit in 12 m × 12 m
+EDIT_KEYS = ["sensor_ports", "sensor_pos_mm", "sensor_white", "sensor_black", "motors", "wheel_diameter_mm",
+             "axle_track_mm", "gear_ratio", "sensor_footprint_mm", "line_width_mm"]
 
 
 def _post(msg):
@@ -22,10 +34,94 @@ def info():
     return {"profiles": core.list_profiles(), "tracks": core.track_names()}
 
 
-def track_image(name, profile, mm_per_px=2):
+# ---------------------------------------------------------------- robots
+def _base_name(robot):
+    return robot if isinstance(robot, str) else robot["base"]
+
+
+def robot_params(robot_json):
+    robot = json.loads(robot_json)
+    if isinstance(robot, str):
+        return core.load_profile(robot)
+    p = core.load_profile(robot["base"])
+    over = robot.get("overrides") or {}
+    p.update(over)
+    if "sensor_pos_mm" in over and p.get("track_ref_mm", 0) > 0:
+        p["track_ref_mm"] = max(float(s[0]) for s in p["sensor_pos_mm"])   # judge progress at the sensors
+    return p
+
+
+def robot_fields(name):
+    # The fields the page's robot editor shows, from a built-in profile
+    p = core.load_profile(name)
+    out = {k: p.get(k) for k in EDIT_KEYS}
+    n = len(p["sensor_ports"])
+    out["sensor_white"] = list(p["sensor_white"])[:n]
+    out["sensor_black"] = list(p["sensor_black"])[:n]
+    if not out["motors"]:
+        out["motors"] = {p["left_motor_port"]: ["L", p["left_mount_sign"]],
+                         p["right_motor_port"]: ["R", p["right_mount_sign"]]}
+    return json.dumps(out)
+
+
+# ---------------------------------------------------------------- arenas
+def random_spec(level, seed):
+    from rl import tracks as RT
+    spec = RT.generate(int(seed), level)
+    return json.dumps({"segs": [list(s) for s in spec["segs"]],
+                       "extras": [[list(map(float, p)) for p in e] for e in (spec.get("extras") or [])]})
+
+
+def builtin_spec(name):
+    # Segment list of a built-in track for the arena editor (None for photo tracks: they are point clouds)
+    spec = core.TRACKS.get(name)
+    if spec is None:
+        return json.dumps(None)
+    if isinstance(spec, dict):
+        return json.dumps({"segs": [list(s) for s in spec["segs"]],
+                           "extras": [[list(map(float, p)) for p in e] for e in (spec.get("extras") or [])]})
+    return json.dumps({"segs": [list(s) for s in spec], "extras": []})
+
+
+def _spec_track(spec, line_width):
+    segs = []
+    for s in spec.get("segs") or []:
+        kind = str(s[0]).upper()
+        if kind == "S" and len(s) == 2 and float(s[1]) > 0:
+            segs.append(("S", float(s[1])))
+        elif kind == "A" and len(s) == 3 and float(s[1]) >= 10:
+            segs.append(("A", float(s[1]), float(s[2])))
+        elif kind == "T" and len(s) == 2:
+            segs.append(("T", float(s[1])))
+        else:
+            raise ValueError("bad segment %r: use S length, A radius angle (radius ≥ 10) or T angle" % (list(s),))
+    total = sum(s[1] if s[0] == "S" else (abs(math.radians(s[2])) * s[1] if s[0] == "A" else 0.0) for s in segs)
+    if total < 200:
+        raise ValueError("the arena's line must be at least 200 mm long")
+    if total > MAX_PATH_MM:
+        raise ValueError("the arena's line is longer than %d m" % (MAX_PATH_MM // 1000))
+    path = core.build_path(segs)
+    extras = [[[float(a), float(b)] for a, b in e] for e in (spec.get("extras") or []) if len(e) >= 2]
+    pts = np.vstack([path] + [np.asarray(e) for e in extras])
+    if float((pts.max(axis=0) - pts.min(axis=0)).max()) > MAX_SPAN_MM:
+        raise ValueError("the arena is larger than %d m × %d m" % (MAX_SPAN_MM // 1000, MAX_SPAN_MM // 1000))
+    lw = float(spec.get("line_width_mm") or line_width)
+    return core.Track(path, lw, extras=extras or None)
+
+
+def arena(arena_json, line_width):
+    a = json.loads(arena_json)
+    if isinstance(a, str):
+        return core.make_track(a, line_width)
+    if "random" in a:
+        return _spec_track(json.loads(random_spec(a["random"].get("level", "hard"), a["random"].get("seed", 1))), line_width)
+    return _spec_track(a["spec"], line_width)
+
+
+def track_image(arena_json, robot_json, mm_per_px=2):
     # The line raster the sensors see (markers and photo points included), shrunk to mm_per_px
-    p = core.load_profile(profile)
-    tk = core.make_track(name, p["line_width_mm"])
+    p = robot_params(robot_json)
+    tk = arena(arena_json, p["line_width_mm"])
     k = max(1, int(round(mm_per_px / tk.res)))
     H, W = tk.img.shape
     h, w = H // k, W // k
@@ -33,9 +129,11 @@ def track_image(name, profile, mm_per_px=2):
     return {"w": w, "h": h, "x0": tk.x0, "y0": tk.y0, "res": tk.res * k,
             "data": (small > 0.5).astype(np.uint8).tobytes(),
             "start": [float(v) for v in tk.path[0]], "end": [float(v) for v in tk.path[-1]],
+            "heading": math.atan2(tk.path[1][1] - tk.path[0][1], tk.path[1][0] - tk.path[0][0]),
             "length": tk.length}
 
 
+# ---------------------------------------------------------------- runs
 class _Console:
     # Program print() → page console, a line at a time
     def __init__(self):
@@ -57,31 +155,29 @@ class _Console:
         pass
 
 
-def _world_params(profile, k):
+def _world(params, base, k):
     # Randomized world k, as in the regression sweeps: motor lag, battery, sensor noise/lag, command lag,
     # IMU lag, turning authority and wheel wobble
     import eval_lf3 as EV
-    weff = [1.4, 1.6] if profile.startswith("spike_3s_geo2") else [1.15, 1.5]
+    weff = [1.4, 1.6] if base.startswith("spike_3s_geo2") else [1.15, 1.5]
     a = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=weff, wob=[0.005, 0.035])
-    return EV.world(core.load_profile(profile), k, a)
+    return EV.world(params, k, a)
 
 
-def run_program(code, profile, track, offset=0.0, seed=0, lost=450.0, limit=60.0, world=-1, stream=True):
+def run_program(code, robot, arena_, offset=0.0, seed=0, lost=450.0, limit=60.0, world=-1, stream=True):
+    params = robot_params(robot)
     if world >= 0:
-        params, off = _world_params(profile, world)
+        params, offset = _world(params, _base_name(json.loads(robot)), world)
         seed = world
-    else:
-        params, off = core.load_profile(profile), offset
-    sim = core.Sim(params, core.make_track(track, params["line_width_mm"]), start_lateral_mm=off,
+    sim = core.Sim(params, arena(arena_, params["line_width_mm"]), start_lateral_mm=offset,
                    time_limit_s=limit, seed=seed)
     sim.LOST_MM = lost
     core.SIM = sim
-    n_sens = len(params["sensor_ports"])
     if stream:
         _post({"type": "robot", "sensors": [list(map(float, s)) for s in params["sensor_pos_mm"]],
                "axle": float(params["axle_track_mm"]), "wheel": float(params["wheel_diameter_mm"]),
                "white": [float(v) for v in params["sensor_white"]], "black": [float(v) for v in params["sensor_black"]],
-               "cols": 7 + n_sens})
+               "cols": 7 + len(params["sensor_ports"])})
     state = {"sent": 0, "next": 0.0}
 
     def flush():
@@ -127,10 +223,10 @@ def run_program(code, profile, track, offset=0.0, seed=0, lost=450.0, limit=60.0
     return {"result": r, "error": error, "trail": trail}
 
 
-def evaluate(code, profile, track, worlds=8, lost=450.0, limit=60.0):
+def evaluate(code, robot, arena_, worlds=8, lost=450.0, limit=60.0):
     # Robustness check, like evaluating an RL policy: the same program in `worlds` randomized worlds
     for k in range(worlds):
-        out = run_program(code, profile, track, lost=lost, limit=limit, world=k, stream=False)
+        out = run_program(code, robot, arena_, lost=lost, limit=limit, world=k, stream=False)
         _post({"type": "world", "k": k, "result": out["result"], "error": out["error"], "trail": out["trail"]})
         if out["error"]:
             break

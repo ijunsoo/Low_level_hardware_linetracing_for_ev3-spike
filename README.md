@@ -8,7 +8,7 @@ English | [한국어](README.ko.md)
 Run your **unmodified** [Pybricks](https://pybricks.com) line-following program on a PC, in a simulator calibrated against real LEGO SPIKE Prime and EV3 robots.
 The repository also contains the two competition robots the simulator was built for.
 
-**▶ [Try it in your browser](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — no install: pick a program or paste your own, choose a robot and a track, and watch it drive.
+**▶ [Try it in your browser](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — no install: pick a program or paste your own, change the robot's shape, pick or build an arena, and watch it drive.
 
 ![The EV3 competition program running on four simulated tracks](docs/img/sim_tracks.png)
 
@@ -17,7 +17,7 @@ The repository also contains the two competition robots the simulator was built 
 - **Tracks.** Curves, right angles, competition-style tracks with crossings and loops, a track traced from a photo of a real competition field, or your own.
 - **Measure, don't guess.** Randomized worlds, paired A/B comparisons, regression tests, and a decoder for black-box logs from the real robot.
 - **GPU and RL.** A PyTorch version of the simulator runs 16,384 robots at once. Train a PPO policy and export it as integer-only Pybricks code.
-- **In the browser.** The same Python simulator runs in a web page with [Pyodide](https://pyodide.org): live animation, sensor readings, motor plots, and a test in 8 randomized worlds.
+- **In the browser.** The same Python simulator runs in a web page with [Pyodide](https://pyodide.org): live animation, sensor readings, motor plots, a test in 8 randomized worlds, a robot editor and an arena editor.
 
 ## Quick start
 
@@ -49,6 +49,10 @@ python -m http.server 8000 --directory web/dist       # then open http://localho
 
 It is the repository's own simulator (`sim/core.py` and the Pybricks mock) running in a Web Worker with Pyodide, so results match the PC.
 The program menu has both competition programs, the reinforcement-learning policy and the examples; GitHub Actions rebuilds and publishes it on every push (`.github/workflows/pages.yml`).
+
+- **Robot editor** — sensors (how many, where, which port, white/black brightness), wheel diameter, wheel spacing, gear ratio and motor ports, with a live top view. A quick-layout helper puts N sensors in a row.
+- **Arenas** — the built-in tracks, endless random arenas generated from the competition rules (pick a number), and an arena editor: write the route piece by piece (`S 500` straight, `A 150 90` curve, `T -90` sharp corner, `M x1 y1 x2 y2` marker), preview it, save it, and share it as a JSON file.
+- Your robots and arenas are saved in your browser.
 
 ## Run your own program
 

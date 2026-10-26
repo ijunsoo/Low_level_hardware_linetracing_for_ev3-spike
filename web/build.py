@@ -40,8 +40,10 @@ PROGRAMS = [
      "EV3 · simple follower (example)", "EV3 · 간단한 라인 따라가기 (예제)", []),
 ]
 
+PAGE_FILES = ("index.html", "i18n.js", "app.js", "editors.js", "worker.js")
+
 SIM_FILES = (["core.py", "eval_lf3.py", "sweep_lf3.py", "micropython.py", "umath.py", "urandom.py",
-              "robot_params.json", "viz/track_pts.json"]
+              "robot_params.json", "viz/track_pts.json", "rl/__init__.py", "rl/tracks.py"]
              + sorted(os.path.relpath(p, os.path.join(ROOT, "sim")) for p in glob.glob(os.path.join(ROOT, "sim", "profiles", "*.json")))
              + sorted(os.path.relpath(p, os.path.join(ROOT, "sim")) for p in glob.glob(os.path.join(ROOT, "sim", "pybricks", "**", "*.py"), recursive=True)))
 
@@ -74,7 +76,7 @@ def main():
     with open(os.path.join(args.out, "programs.json"), "w", encoding="utf-8") as f:
         json.dump(progs, f, ensure_ascii=False)
 
-    for name in ("index.html", "worker.js"):
+    for name in PAGE_FILES:
         shutil.copy(os.path.join(HERE, name), os.path.join(args.out, name))
     print("built %s: %d sim files, %d programs" % (args.out, len(bundle), len(progs)))
 
