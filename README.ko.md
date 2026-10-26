@@ -33,7 +33,7 @@ LEGO **SPIKE Prime**과 **EV3**로 만든 3센서 라인트레이서입니다.
 | `diag_logs/` | 실기 블랙박스·진단 로그 (시뮬 보정에 사용) |
 | `examples/` | 처음 쓰는 사람용 짧은 예제 (영어 주석, 시뮬에서 바로 실행) |
 | `web/` | 브라우저 시뮬레이터 (Pyodide로 같은 파이썬 시뮬을 웹에서) — `python web/build.py`로 빌드, push하면 GitHub Pages로 배포 |
-| `docs/` | 설계 문서, 시뮬 API·프로파일·트랙 설명(`SIM_API.md`, 영어) |
+| `docs/` | 설계 문서, 시뮬 API·프로파일·트랙 설명(`SIM_API.md`, 영어), 물리 엔진 검토([`PHYSICS_ENGINE.ko.md`](docs/PHYSICS_ENGINE.ko.md)) |
 
 시뮬 설치: `pip install -r requirements.txt` (GPU·강화학습은 `requirements-gpu.txt`) · 라이선스: MIT
 

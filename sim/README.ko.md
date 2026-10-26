@@ -102,6 +102,7 @@ python3.13 sim/run_sim.py ev3/ev3_lf3_rule.py --profile ev3_3s_geo --track hard
 | `stop_test.py` | 정지 버튼 시험: 정지 후 출력량, 프로그램이 붙잡는 시간, 그동안 바퀴가 더 굴러간 거리 |
 | `step_dump.py` | 한 월드의 스텝별 센서·오차·조향·위치 |
 | `pivot_resp.py` | 제자리 회전 뒤 회전 속도가 붙는 정도: 실기 블랙박스 vs 시뮬 |
+| `physics_check.py` | 공개된 SPIKE 모터값(Pybricks 펌웨어 모델) → 직진·회전 시정수 vs 프로파일. `--mujoco` MuJoCo 로봇, `--final` 물리식 2배 모형으로 완성판 주행 ([`docs/PHYSICS_ENGINE.ko.md`](../docs/PHYSICS_ENGINE.ko.md)) |
 | `make4.py`, `make_guard.py`, `make_sent.py`, `make_bank.py` | 센서 4개·원 대책·앞 센티넬·곡선 강제 회전 실험 변형 생성 → `tools/variants/` (git 제외) |
 
 ```bash
@@ -111,6 +112,7 @@ python3.13 sim/tools/corner_eval.py '[["85", {"ST_BANK": 85}], ["75", {}]]' --sr
   --tracks rightangle,main,hard,photo@1.3 --lost 450 --worlds 32 --dump /tmp/bank.json
 python3.13 sim/tools/paired.py "/tmp/bank.json:85" "/tmp/bank.json:75"
 python3.13 sim/tools/pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x
+python3.13 sim/tools/physics_check.py --final
 ```
 
 `--fwd 170`은 센서 3개를 그 거리 일렬로 놓고, `--fwd 0`은 프로파일의 센서 위치를 그대로 씁니다 (센서 4개 프로파일은 반드시 0).
@@ -187,3 +189,4 @@ RL v3 (일렬 3센서, 잔차 정책) vs 규칙기반, CPU core 100월드:
 - 원(작은 루프)은 1배 `photo`에서 실기보다 훨씬 비관적입니다 (원이 실기보다 작음). 원 관련 비교는 `photo@1.3`으로 합니다.
 - 실기에서 라인 하나가 두 센서 사이에 걸치면 둘 다 30~45%로 읽혀 '가짜 직각 신호'가 생겼는데, 시뮬은 이걸 재현하지 못했습니다.
 - `spike_3s_geo2x`의 토크 한계(시정수 ×2)는 실기 2배 회전 1번에 맞춘 대략값입니다. 2초 블랙박스가 더 모이면 다시 맞춥니다.
+- 물리 엔진(MuJoCo)은 검토 후 넣지 않았습니다. 모터는 공개값으로 맞지만, 회전은 엔진도 모르는 바퀴 미끄러짐이 좌우합니다. [`docs/PHYSICS_ENGINE.ko.md`](../docs/PHYSICS_ENGINE.ko.md) 참고.

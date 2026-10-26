@@ -75,6 +75,7 @@ What the mock supports — and what it doesn't — is listed in [`docs/SIM_API.m
 |---|---|
 | [`sim/README.md`](sim/README.md) | Simulator guide: profiles, tracks, evaluation tools, regression tests, GPU simulator and RL, calibration, limitations |
 | [`docs/SIM_API.md`](docs/SIM_API.md) | Supported Pybricks API, robot profile keys, track format |
+| [`docs/PHYSICS_ENGINE.md`](docs/PHYSICS_ENGINE.md) | Would a physics engine make the simulator match the real robot? Public motor data, MuJoCo tests, what still has to come from black boxes |
 | [`examples/`](examples/) | Short beginner programs that run in the simulator and on the robot |
 | [`README.ko.md`](README.ko.md) | Korean: the competition robots, wiring, how they drive, experiment results |
 

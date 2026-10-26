@@ -119,6 +119,7 @@ A run ends with one of these results:
 | `stop_test.py` | Stop-button test: output after stopping, how long the program holds on, how far the wheels keep rolling |
 | `step_dump.py` | Step-by-step sensors, error, steering and position for one world |
 | `pivot_resp.py` | How fast turning picks up after a pivot: real black box vs simulation |
+| `physics_check.py` | Public SPIKE motor data (Pybricks firmware model) → forward and turning time constants vs the profiles. `--mujoco` MuJoCo robot, `--final` the competition program on a physics-scaled 2× model ([`docs/PHYSICS_ENGINE.md`](../docs/PHYSICS_ENGINE.md)) |
 | `make4.py`, `make_guard.py`, `make_sent.py`, `make_bank.py` | Generate experiment variants (4 sensors, loop guard, front sentinel, curve forced turn) → `tools/variants/` (not in git) |
 
 ```bash
@@ -128,6 +129,7 @@ python sim/tools/corner_eval.py '[["85", {"ST_BANK": 85}], ["75", {}]]' --src sp
   --tracks rightangle,main,hard,photo@1.3 --lost 450 --worlds 32 --dump bank.json
 python sim/tools/paired.py "bank.json:85" "bank.json:75"
 python sim/tools/pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x
+python sim/tools/physics_check.py --final
 ```
 
 `--fwd 170` places the three sensors in a row at that distance; `--fwd 0` keeps the profile's sensor positions (always use 0 for 4-sensor profiles).
@@ -204,3 +206,4 @@ RL v3 (3 sensors in a row, residual policy) vs the rule-based program, CPU simul
 - Small loops are much more pessimistic on the 1× `photo` track than on the real field (the loop is smaller than the real one). Compare loop behavior on `photo@1.3`.
 - On the robot, a line straddling two sensors made both read 30–45 % and produced a false right-angle signal; the simulator does not reproduce this.
 - The torque limit of `spike_3s_geo2x` (time constants ×2) is a rough fit to one real 2× pivot; it will be refit as more 2 s black boxes come in.
+- A physics engine (MuJoCo) was reviewed and not adopted: the motor is publicly characterized and matches, but turning is dominated by tire slip, which no engine knows. See [`docs/PHYSICS_ENGINE.md`](../docs/PHYSICS_ENGINE.md).
