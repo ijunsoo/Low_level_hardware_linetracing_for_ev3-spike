@@ -67,7 +67,7 @@ Choose a profile with `--profile NAME`. To describe your own robot, see [`docs/S
 | Profile | What it is |
 |---|---|
 | `spike_3s_geo2` | **SPIKE, 1× gearing (default).** Measured geometry (3 sensors 23 mm apart, 170 mm ahead of the axle; track width 205 mm; 80 mm wheels) + turn calibration (time constant 0.05 s, w_eff 1.5) |
-| `spike_3s_geo2x` | **SPIKE, 2× gearing.** geo2 + gears doubled + motor/turn time constants ×3 (torque limit) |
+| `spike_3s_geo2x` | **SPIKE, 2× gearing.** geo2 + gears doubled + motor/turn time constants ×2 (torque limit) |
 | `ev3_3s_geo` | EV3 (sensor ports S1·S3·S2, motors A·B / C·D, no gyro) |
 | `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s` (= `robot_params.json`) | Earlier stages these profiles inherit from (older measurements) |
 | `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 4-sensor experiments: 3 + D read only / 4 in a row / 3 + one ahead in the middle |
@@ -192,7 +192,7 @@ RL v3 (3 sensors in a row, residual policy) vs the rule-based program, CPU simul
 - **Fitted so far**:
   - Real control loop ≈ 734 updates/s
   - Turning: time constant ≈ 0.05 s, actuation delay ≈ 36 ms, w_eff ≈ 1.5 (5 black boxes) → `spike_3s_geo2`
-  - 2× gearing: turning picks up about as fast as with 1× → time constants ×3 → `spike_3s_geo2x` (rough: based on one real 2× pivot)
+  - 2× gearing: turning picks up about as fast as with 1× → time constants ×2 → `spike_3s_geo2x` (rough: ×2 and ×3 fit the one real 2× pivot equally; ×2 also lets the final program finish like on the real robot)
 
 ---
 
@@ -203,4 +203,4 @@ RL v3 (3 sensors in a row, residual policy) vs the rule-based program, CPU simul
 - Sensors reproduce reflected light only — no raw mode (mode 3) and no color.
 - Small loops are much more pessimistic on the 1× `photo` track than on the real field (the loop is smaller than the real one). Compare loop behavior on `photo@1.3`.
 - On the robot, a line straddling two sensors made both read 30–45 % and produced a false right-angle signal; the simulator does not reproduce this.
-- The torque limit of `spike_3s_geo2x` (time constants ×3) is a rough fit to one real 2× pivot; it will be refit as more 2 s black boxes come in.
+- The torque limit of `spike_3s_geo2x` (time constants ×2) is a rough fit to one real 2× pivot; it will be refit as more 2 s black boxes come in.

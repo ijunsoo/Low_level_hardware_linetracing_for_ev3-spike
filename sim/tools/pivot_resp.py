@@ -1,7 +1,7 @@
 # 제자리 회전(|조향| ≥ 85) 시작 뒤 회전 속도가 얼마나 빨리 붙나 — 실기 블랙박스와 시뮬을 같은 4ms 기록 방식으로 비교
 #   python3 pivot_resp.py diag_logs/bb_*.txt                                  (실기 로그만)
 #   python3 pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x --sim spike_3s_geo2:'{"gear_ratio": 3.3333}'
-#   기어만 2배로 바꾼 geo2는 40ms에 +344°/s, 실기 2배는 +144°/s → 토크 한계를 넣은 geo2x(+171)가 실기에 가까움
+#   기어만 2배로 바꾼 geo2는 40ms에 +344°/s, 실기 2배는 +144°/s → 토크 한계를 넣은 geo2x(시정수 ×2: +199, 60ms +248 vs 실기 +200)가 실기에 가까움
 import argparse
 import contextlib
 import io
