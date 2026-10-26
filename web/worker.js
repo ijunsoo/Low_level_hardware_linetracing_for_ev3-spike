@@ -56,7 +56,7 @@ self.onmessage = async (e) => {
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
     // Python errors arrive as a full traceback: keep the last line (the error itself) for the page
-    const last = msg.trim().split("\n").pop();
+    const last = msg.trim().split("\n").pop().replace(/^(ValueError|KeyError|FileNotFoundError): /, "");
     postMessage({ type: "error", context: m.type, key: m.key, message: last, detail: msg });
   }
 };

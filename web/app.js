@@ -105,6 +105,7 @@ function setBusy(b) {
   $("run").disabled = !ready || b;
   $("eval").disabled = !ready || b;
   $("stop").disabled = !b;
+  for (const id of ["prog", "robotSel", "arenaSel", "aseed", "dice", "editRobot", "editArena"]) $(id).disabled = b;
 }
 function startWorker() {
   ready = false;
@@ -182,8 +183,19 @@ function loadProgram(id, autorun) {
   $("robotSel").value = "p:" + p.profile;
   $("arenaSel").value = "t:" + p.track;
   arenaControls();
-  requestTrack();
+  settingsChanged();
   if (autorun) run();
+}
+function clearResults() {
+  // The trail, result, chart, world tests and console belong to the settings they were run with
+  frames = new Float32Array(0); nRows = 0; result = null; lights = []; worlds = []; runGeom = null;
+  playT = 0; playing = false;
+  $("console").textContent = ""; $("result").innerHTML = ""; $("evalbox").innerHTML = "";
+  $("scrub").max = 0; $("scrub").value = 0; $("scrub").disabled = true; $("pp").disabled = true;
+}
+function settingsChanged() {
+  clearResults();
+  requestTrack();
 }
 function requestTrack() {
   if (!ready) return;
@@ -194,10 +206,10 @@ function requestTrack() {
 }
 
 $("prog").addEventListener("change", () => loadProgram($("prog").value, false));
-$("robotSel").addEventListener("change", requestTrack);
-$("arenaSel").addEventListener("change", () => { arenaControls(); requestTrack(); });
-$("aseed").addEventListener("change", requestTrack);
-$("dice").addEventListener("click", () => { $("aseed").value = 1 + Math.floor(Math.random() * 99999); requestTrack(); });
+$("robotSel").addEventListener("change", settingsChanged);
+$("arenaSel").addEventListener("change", () => { arenaControls(); settingsChanged(); });
+$("aseed").addEventListener("change", settingsChanged);
+$("dice").addEventListener("click", () => { $("aseed").value = 1 + Math.floor(Math.random() * 99999); settingsChanged(); });
 $("code").addEventListener("keydown", (e) => {
   if (e.key === "Tab") {
     e.preventDefault();
@@ -208,10 +220,8 @@ $("code").addEventListener("keydown", (e) => {
 });
 
 function resetRun() {
-  frames = new Float32Array(0); nRows = 0; result = null; lights = []; worlds = []; runGeom = null;
-  playT = 0; playing = true;
-  $("console").textContent = ""; $("result").innerHTML = ""; $("evalbox").innerHTML = "";
-  $("scrub").max = 0; $("scrub").value = 0;
+  clearResults();
+  playing = true;
 }
 function opts() {
   return { code: $("code").value, robot: robotJSON(), arena: arenaJSON(),

@@ -170,7 +170,7 @@ $("rSave").addEventListener("click", () => {
   saveStore("lfsim.robots", robots);
   fillSelects();
   $("robotSel").value = "r:" + r.name;
-  requestTrack();
+  settingsChanged();
   $("robotDlg").close();
 });
 $("rDelete").addEventListener("click", () => {
@@ -180,13 +180,16 @@ $("rDelete").addEventListener("click", () => {
     saveStore("lfsim.robots", robots);
     fillSelects();
     $("robotSel").value = "p:" + ($("rBase").value || "spike_3s_geo2");
-    requestTrack();
+    settingsChanged();
   }
   $("robotDlg").close();
 });
 
 // ---------------------------------------------------------------- arena editor
 let aKey = 0, aWait = null, aTimer = null;
+let aKeyText = {};          // preview request → the route text it checked
+let aValidText = null;      // route text the simulator accepted (null = not checked or rejected)
+let aAfter = null;          // "save" / "export" waiting for the check
 
 function round1(v) { return Math.round(v * 10) / 10; }
 function arenaToText(spec) {
@@ -217,23 +220,41 @@ function parseArena(text) {
   if (!spec.segs.length) throw new Error(tr("errEmpty"));
   return spec;
 }
-function aPreview() {
+function aClearPreview() {
+  const cv = $("aPreview"), g = cv.getContext("2d");
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = css("--mat"); g.fillRect(0, 0, cv.width, cv.height);
+  $("aInfo").textContent = "";
+}
+function aPreview(now) {
+  aValidText = null;
   clearTimeout(aTimer);
-  aTimer = setTimeout(() => {
+  const check = () => {
     let spec;
-    try { spec = parseArena($("aText").value); } catch (e) { $("aErr").textContent = e.message; return; }
+    try { spec = parseArena($("aText").value); } catch (e) { $("aErr").textContent = e.message; aAfter = null; aClearPreview(); return; }
     $("aErr").textContent = "";
+    $("aInfo").textContent = tr("checking");
     aKey += 1;
+    aKeyText = { [aKey]: $("aText").value };
     worker.postMessage({ type: "track", key: "editor:" + aKey, arena: JSON.stringify({ spec }), robot: robotJSON() });
-  }, 350);
+  };
+  if (now) check(); else aTimer = setTimeout(check, 350);
+}
+function whenValid(action) {
+  // Run action now if the current route passed the check, otherwise check first and run it after
+  if ($("aText").value === aValidText) { action(); return; }
+  aAfter = action;
+  aPreview(true);
 }
 H.editorTrack = (key, image) => {
   if (key !== "editor:" + aKey) return;
   const t = makeTrackImage(image), cv = $("aPreview"), g = cv.getContext("2d");
   drawArena(g, cv, t, fitTransform(cv, t));
   $("aInfo").textContent = tr("arenaInfo", { L: (t.length / 1000).toFixed(1), W: (t.w * t.res / 1000).toFixed(1), H: (t.h * t.res / 1000).toFixed(1) });
+  aValidText = aKeyText[aKey];
+  if (aAfter && $("aText").value === aValidText) { const f = aAfter; aAfter = null; f(); }
 };
-H.editorError = (msg) => { $("aErr").textContent = msg; };
+H.editorError = (msg) => { $("aErr").textContent = msg; aValidText = null; aAfter = null; aClearPreview(); };
 H.randomSpec = (spec, level, seed) => {
   if (aWait !== "random" || !$("arenaDlg").open) return;
   aWait = null;
@@ -285,17 +306,17 @@ $("aLoadRandom").addEventListener("click", () => {
 $("aLoadBuiltin").addEventListener("click", () => { aWait = "builtin"; worker.postMessage({ type: "builtin", name: $("aBuiltin").value }); });
 $("aClose").addEventListener("click", () => $("arenaDlg").close());
 $("aSave").addEventListener("click", () => {
-  const name = $("aName").value.trim();
-  if (!name) { $("aErr").textContent = tr("errName"); return; }
-  let spec;
-  try { spec = parseArena($("aText").value); } catch (e) { $("aErr").textContent = e.message; return; }
-  arenas[name] = spec;
-  saveStore("lfsim.arenas", arenas);
-  fillSelects();
-  $("arenaSel").value = "a:" + name;
-  arenaControls();
-  requestTrack();
-  $("arenaDlg").close();
+  if (!$("aName").value.trim()) { $("aErr").textContent = tr("errName"); return; }
+  whenValid(() => {
+    const name = $("aName").value.trim();
+    arenas[name] = parseArena($("aText").value);
+    saveStore("lfsim.arenas", arenas);
+    fillSelects();
+    $("arenaSel").value = "a:" + name;
+    arenaControls();
+    settingsChanged();
+    $("arenaDlg").close();
+  });
 });
 $("aDelete").addEventListener("click", () => {
   const name = $("aName").value.trim();
@@ -305,20 +326,19 @@ $("aDelete").addEventListener("click", () => {
     fillSelects();
     $("arenaSel").value = "t:main";
     arenaControls();
-    requestTrack();
+    settingsChanged();
   }
   $("arenaDlg").close();
 });
-$("aExport").addEventListener("click", () => {
-  let spec;
-  try { spec = parseArena($("aText").value); } catch (e) { $("aErr").textContent = e.message; return; }
+$("aExport").addEventListener("click", () => whenValid(() => {
+  const spec = parseArena($("aText").value);
   const name = $("aName").value.trim() || "arena";
   const blob = new Blob([JSON.stringify({ format: "lfsim-arena/1", name, spec }, null, 1)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob); a.download = name.replace(/[^\w\-가-힣 ]+/g, "_") + ".json";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-});
+}));
 $("aImportBtn").addEventListener("click", () => $("aImport").click());
 $("aImport").addEventListener("change", async () => {
   const f = $("aImport").files[0];
