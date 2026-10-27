@@ -62,11 +62,12 @@ SPIKE Prime(+EV3 컬러센서)과 EV3(Pybricks v4) 둘 다 지원합니다.
 |---|---|
 | `spike_3s_geo2` | **SPIKE 1배 기어 기본.** 실측 치수(센서 3개 23mm 간격 @170mm, 윤거 205mm, 바퀴 80mm) + 회전 보정(시정수 0.05s, w_eff 1.5) |
 | `spike_3s_geo2x` | **SPIKE 2배 기어 기본.** geo2 + 기어 2배 + 모터·회전 시정수 ×2 (토크 한계) |
+| `spike_3s_geo2_15x` | **SPIKE 1.5배 기어 (권장, 아직 실측 없음).** geo2 + 기어 1.5배(`gear_ratio` 2.5), 시정수 0.142 / 0.071초 = 실측 1배·2배 사이를 모터 물리식으로 보간. 대회용 완성판 상수를 이 기어에 맞춤 |
 | `ev3_3s_geo` | EV3 (포트 S1·S3·S2, 모터 A·B / C·D, 자이로 없음) |
 | `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s`(= `robot_params.json`) | 위 프로파일들의 상속 단계 (예전 측정) |
 | `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 센서 4개 실험: 3개 + D 읽기만 / 4개 일렬 / 3개 + 앞 가운데 |
 
-geo2·geo2x로 평가할 때는 `--weff 1.4,1.6`을 함께 줍니다.
+geo2·geo2x·geo2_15x로 평가할 때는 `--weff 1.4,1.6`을 함께 줍니다.
 
 | 트랙 | 내용 |
 |---|---|

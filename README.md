@@ -130,6 +130,7 @@ The code comments are in Korean. [`README.ko.md`](README.ko.md) has the wiring, 
 
 - **Small loops can trap the robot** when the sensor arm (170 mm) is longer than the loop radius. Whether the second turn catches the exit at the crossing decides it.
 - **2× gears did not make pivots twice as fast** on the real robot. The 2× model (`spike_3s_geo2x`) slows turning down to match a real pivot.
+- **1.5× gears are as fast and more reliable** (simulator). With one motor per side, the 2× robot uses only about a third of its top speed. At 1.5× with retuned constants it finished 49 of 54 runs instead of 39, and right angles took 3.8 s instead of 4.1 s. The SPIKE final now defaults to `GEAR=1.5`; a `GEAR=2` line is kept for 2× robots.
 - **Turning depends on tire slip.** The motor is publicly characterized and matches the simulator, but tire slip has to come from black-box logs ([physics engine review](docs/PHYSICS_ENGINE.md)).
 - **On the EV3, RGB reflection followed the line better** than raw red reflection, even with both calibrated.
 

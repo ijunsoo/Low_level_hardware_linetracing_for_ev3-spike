@@ -69,11 +69,12 @@ Choose a profile with `--profile NAME`. To describe your own robot, see [`docs/S
 |---|---|
 | `spike_3s_geo2` | **SPIKE, 1× gearing (default).** Measured geometry (3 sensors 23 mm apart, 170 mm ahead of the axle; track width 205 mm; 80 mm wheels) + turn calibration (time constant 0.05 s, w_eff 1.5) |
 | `spike_3s_geo2x` | **SPIKE, 2× gearing.** geo2 + gears doubled + motor/turn time constants ×2 (torque limit) |
+| `spike_3s_geo2_15x` | **SPIKE, 1.5× gearing (recommended, not measured yet).** geo2 + gears ×1.5 (`gear_ratio` 2.5); time constants 0.142 / 0.071 s, interpolated between the measured 1× and 2× with the motor physics. The competition program is tuned for it |
 | `ev3_3s_geo` | EV3 (sensor ports S1·S3·S2, motors A·B / C·D, no gyro) |
 | `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s` (= `robot_params.json`) | Earlier stages these profiles inherit from (older measurements) |
 | `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 4-sensor experiments: 3 + D read only / 4 in a row / 3 + one ahead in the middle |
 
-When evaluating with geo2 or geo2x, also pass `--weff 1.4,1.6`.
+When evaluating with geo2, geo2x or geo2_15x, also pass `--weff 1.4,1.6`.
 
 | Track | What it is |
 |---|---|

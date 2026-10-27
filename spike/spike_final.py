@@ -5,7 +5,7 @@ from pybricks.parameters import Direction, Port, Axis, Color
 from pybricks.tools import wait, StopWatch
 
 # =============================================================
-#  SPIKE Prime 3센서 라인트레이서 — 최종판 (2026-10-24, E8R10과 같은 동작)
+#  SPIKE Prime 3센서 라인트레이서 — 최종판 (2026-10-27: 기어 1.5배 기준 상수. GEAR=2 줄이면 E8R10과 같은 동작)
 #
 #  사용법
 #   1) spike/spike_value.py를 RAW_MODE = True로 실행해 빛값을 재고, 맨 아래 line_trace(...) 줄의 VALUE에 붙여 넣는다
@@ -15,6 +15,7 @@ from pybricks.tools import wait, StopWatch
 #   4) 연습 땐 AUTO_STOP=True: 라인을 오래 잃으면 스스로 멈추고 마지막 2초 기록을 출력한다
 #      (python3 sim/bb_parse.py 로그.txt 로 해석). 대회 땐 AUTO_STOP=False
 #  배선: EV3 컬러센서 3개 — C 좌 · A 가운데 · B 우 (일렬 23mm 간격, 바퀴축 앞 17cm) / 모터 E 좌 · F 우
+#  기어: 20:12 다음 단을 1.5:1로 (권장 — 시뮬에서 2배와 속도는 비슷하고 더 안정적). 2배 로봇이면 맨 아래 GEAR=2 줄을 쓸 것
 #  모든 회전은 파워 100 그대로 조향만으로 한다 (예외: 긴 직선 끝 직각에서 50ms 브레이크)
 #  만든 과정·실험 기록: README.md, github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike
 # =============================================================
@@ -24,13 +25,18 @@ RAW_MODE = True         # 센서 raw 모드(EV3 컬러센서 모드 3): % 반사
 VALUE0 = [22, 2, 22, 2, 37, 4]  # raw 모드가 3초 넘게 0만 줄 때 자동으로 바꿔 쓰는 일반 반사 모드(%) 빛값
 AUTO_CAL = True         # 출발 자세(가운데 = 라인, 좌우 = 흰 바닥)에서 흰색을 다시 재서 VALUE 보정
 YAW_FIXED = True        # True = 허브를 화면이 위로 오게 평평하게 단 로봇 (False면 중력으로 회전축을 찾음)
-KG2 = 216               # 곡선에서 흔들림 잡기 (-1 = KG 그대로)
-G_CLAMP = 71            # 자이로가 조향에 더할 수 있는 최대값
-CURVE_YAW = 153         # 회전 평균이 이 값(°/s)이면 '곡선' 100% → KP2·KG2를 씀
-CURVE_TAU_MS = 119      # 그 회전 평균을 내는 시간 (ms)
-STR_YAW = 40            # 회전 평균이 이 값(°/s)보다 작으면 '직진 중'
+# 기어에 따라 다른 값 — 맨 아래 줄의 GEAR로 고른다
+#   KG2              곡선에서 흔들림 잡기 (-1 = KG 그대로)
+#   G_CLAMP          자이로가 조향에 더할 수 있는 최대값
+#   CURVE_YAW        회전 평균이 이 값(°/s)이면 '곡선' 100% → KP2·KG2를 씀
+#   STR_YAW          회전 평균이 이 값(°/s)보다 작으면 '직진 중'
+#   MAX_STEER_DELTA  한 번에 바꿀 수 있는 조향 크기
+#                KG2  G_CLAMP  CURVE_YAW  STR_YAW  MAX_STEER_DELTA
+GEAR_SET = {1.5: (257, 93, 81, 49, 105),       # 기어 1.5배 (2026-10-27 시뮬 탐색)
+            2: (216, 71, 153, 40, 79)}         # 기어 2배 (E8R10)
+KG2, G_CLAMP, CURVE_YAW, STR_YAW, MAX_STEER_DELTA = GEAR_SET[1.5]
+CURVE_TAU_MS = 119      # 회전 평균을 내는 시간 (ms)
 ALPHA = 950             # 센서 값 부드럽게 (×1000, 클수록 새 값 비중↑)
-MAX_STEER_DELTA = 79    # 한 번에 바꿀 수 있는 조향 크기
 W_NORM = 81             # 흰색 문턱 (정규화 0~100)
 BLACK_MID = 51          # 검정 문턱
 SIDE_ERR = 60           # 오차가 이보다 크게 기울면 '라인이 그쪽'으로 기억 (놓쳤을 때 돌 방향)
@@ -432,9 +438,14 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
 
 
 # =============================== 메인 =============================== #
-def line_trace(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_STOP, BB_PRINT):
-    # 요축 정하기 → 주행 → 멈추면(정지 버튼·AUTO_STOP·오류) 모터 세우고 블랙박스 출력
-    global YAW_AXIS, YAW_SIGN
+def line_trace(VALUE, GEAR, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_STOP, BB_PRINT):
+    # 기어별 값 고르기 → 요축 정하기 → 주행 → 멈추면(정지 버튼·AUTO_STOP·오류) 모터 세우고 블랙박스 출력
+    global YAW_AXIS, YAW_SIGN, KG2, G_CLAMP, CURVE_YAW, STR_YAW, MAX_STEER_DELTA
+    gear = min(GEAR_SET, key=lambda g: abs(g - GEAR))
+    if gear != GEAR:
+        print("GEAR", GEAR, "값이 없어 가장 가까운", gear, "배 값을 씀")
+    KG2, G_CLAMP, CURVE_YAW, STR_YAW, MAX_STEER_DELTA = GEAR_SET[gear]
+    print("기어", gear, "배 설정")
     if YAW_FIXED:
         wait(200)               # 켜진 직후 센서 값이 자리 잡을 때까지
         YAW_AXIS, YAW_SIGN = Axis.Z, 1
@@ -487,6 +498,10 @@ def line_trace(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, 
 
 # ===================== ★ 맨 아래 한 줄만 바꾸세요 ★ ===================== #
 #  VALUE        빛값 [흰, 검] × (좌, 우, 가운데) — spike_value.py(RAW_MODE = True)로 재서 붙여 넣기
+#  GEAR         로봇 기어 (20:12 다음 단): 1.5 또는 2. 고급 설정의 기어별 값을 고른다
+#               아래 상수도 기어마다 다르니, 기어를 바꾸면 이 줄을 통째로 바꿔 쓸 것 (시뮬로 맞춘 값):
+#                 1.5배: GEAR=1.5, POWER=100, KP=0.057, KP2=0.269, KG=217, ST_BANK=60, ST_BANK_STR=100, RA_YAW=294, BRK_MS=50
+#                 2배:   GEAR=2, POWER=100, KP=0.088, KP2=0.433, KG=209, ST_BANK=75, ST_BANK_STR=100, RA_YAW=300, BRK_MS=50
 #  POWER        속도 (0~100). 기본 100. 낮추면 회전도 같이 약해진다
 #  KP           직선에서 조향 세기. 크면 라인을 세게 쫓고(흔들림↑), 작으면 부드럽지만 늦게 쫓는다
 #  KP2          곡선(원·급커브)에서 조향 세기. 곡선 바깥으로 밀려나면 ↑
@@ -497,4 +512,4 @@ def line_trace(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, 
 #  BRK_MS       긴 직선 끝 직각에서 브레이크 거는 시간 (ms). 0 = 브레이크 끔
 #  AUTO_STOP    연습 = True (라인을 오래 잃으면 스스로 멈춤) / 대회 = False
 #  BB_PRINT     멈출 때 블랙박스(마지막 2초) 출력. False면 멈추자마자 바로 끝남
-line_trace(VALUE=[68, 12, 72, 12, 116, 12], POWER=100, KP=0.088, KP2=0.433, KG=209, ST_BANK=75, ST_BANK_STR=100, RA_YAW=300, BRK_MS=50, AUTO_STOP=True, BB_PRINT=True)
+line_trace(VALUE=[68, 12, 72, 12, 116, 12], GEAR=1.5, POWER=100, KP=0.057, KP2=0.269, KG=217, ST_BANK=60, ST_BANK_STR=100, RA_YAW=294, BRK_MS=50, AUTO_STOP=True, BB_PRINT=True)

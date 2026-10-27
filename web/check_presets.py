@@ -24,7 +24,7 @@ import runner   # noqa: E402  (the page's runner: robots, arenas, randomized wor
 # program id: (time in the default world, s, (min, max)), finishes needed out of 8 random worlds (None = not run)
 EXPECT = {
     "ev3_final": ((4.3, 5.3), 7),
-    "spike_final": ((3.6, 4.5), 7),
+    "spike_final": ((3.1, 3.9), 7),      # 1.5x gears (spike_3s_geo2_15x)
     "spike_rl": ((2.8, 3.5), None),
     "spike_simple": ((3.9, 4.8), None),
     "spike_drivebase": ((4.4, 5.4), None),

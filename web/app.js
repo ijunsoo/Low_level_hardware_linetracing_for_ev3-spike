@@ -5,7 +5,7 @@ const $ = (id) => document.getElementById(id);
 const view = $("view"), vctx = view.getContext("2d");
 const chart = $("chart"), cctx = chart.getContext("2d");
 
-const PROFILE_MAIN = ["spike_3s_geo2", "spike_3s_geo2x", "ev3_3s_geo"];
+const PROFILE_MAIN = ["spike_3s_geo2", "spike_3s_geo2_15x", "spike_3s_geo2x", "ev3_3s_geo"];
 const TRACK_ORDER = ["easy", "main", "hard", "rightangle", "photo@1.3", "photo", "mrc", "mrc_real"];
 const LEVELS = ["easy", "medium", "hard"];
 const LIGHT = { RED: "#ff3b30", GREEN: "#34c759", YELLOW: "#ffcc00", ORANGE: "#ff9500", BLUE: "#0a84ff", VIOLET: "#af52de",
