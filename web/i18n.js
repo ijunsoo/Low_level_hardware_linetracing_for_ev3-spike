@@ -8,7 +8,7 @@ const T = {
     editRobot: "Edit robot…", editArena: "Edit arena…", newSeed: "New random arena",
     arenaSeed: "Arena no.",
     offset: "Start offset (mm)", seed: "Noise seed", lost: "Lost at (mm)", limit: "Time limit (s)",
-    run: "▶ Run", eval: "Test in 8 random worlds", stop: "Stop",
+    run: "▶ Run", eval: "Test in 8 random worlds", stop: "Stop", export: "Export results",
     simNote: "Programs from this repository already use the simulated sensor brightness. In your own program, use white/black values around 34/6 (left), 22/3 (right), 21/3 (middle), or set them in the robot editor.",
     lat: "distance from line (mm)", dl: "left motor (%)", dr: "right motor (%)",
     footer: "The simulator is the repository's Python code (sim/core.py and a Pybricks mock), running in your browser with Pyodide — the same results as on a PC. Your robots and arenas are saved in this browser.",
@@ -44,6 +44,7 @@ const T = {
     loadRandom: "Load random arena", loadBuiltin: "Load built-in", exportJ: "Export file", importJ: "Import file",
     myArena: "My arena", arenaInfo: "{L} m of line · {W} × {H} m", checking: "Checking the arena…",
     errLine: "Line {n}: {msg}", errUnknown: "unknown piece \"{p}\" (use S, A, T, M or W)", errArgs: "wrong number of values",
+    errWidth: "the line width must be 5–60 mm",
     errEmpty: "The route needs at least one piece.", noSpec: "Photo arenas are point clouds and cannot be edited — loading an example instead.",
   },
   ko: {
@@ -53,7 +54,7 @@ const T = {
     editRobot: "로봇 편집…", editArena: "경기장 편집…", newSeed: "새 무작위 경기장",
     arenaSeed: "경기장 번호",
     offset: "출발 위치 (mm)", seed: "잡음 시드", lost: "이탈 기준 (mm)", limit: "제한 시간 (초)",
-    run: "▶ 실행", eval: "무작위 월드 8개로 시험", stop: "멈춤",
+    run: "▶ 실행", eval: "무작위 월드 8개로 시험", stop: "멈춤", export: "결과 내보내기",
     simNote: "이 저장소의 프로그램은 이미 시뮬 센서 밝기로 맞춰져 있어요. 직접 쓴 프로그램이라면 흰/검 값을 왼쪽 34/6, 오른쪽 22/3, 가운데 21/3 정도로 쓰거나, 로봇 편집에서 센서 밝기를 바꾸세요.",
     lat: "라인에서 떨어진 거리 (mm)", dl: "왼쪽 모터 (%)", dr: "오른쪽 모터 (%)",
     footer: "이 시뮬레이터는 저장소의 파이썬 코드(sim/core.py와 Pybricks 목)를 Pyodide로 브라우저에서 그대로 돌립니다 — PC와 결과가 같아요. 만든 로봇과 경기장은 이 브라우저에 저장돼요.",
@@ -87,6 +88,7 @@ const T = {
     loadRandom: "무작위 경기장 불러오기", loadBuiltin: "기본 경기장 불러오기", exportJ: "파일로 내보내기", importJ: "파일 가져오기",
     myArena: "내 경기장", arenaInfo: "라인 {L}m · {W} × {H}m", checking: "경기장 확인 중…",
     errLine: "{n}번째 줄: {msg}", errUnknown: "모르는 조각 \"{p}\" (S, A, T, M, W 중 하나)", errArgs: "숫자 개수가 맞지 않아요",
+    errWidth: "라인 폭은 5~60mm여야 해요",
     errEmpty: "경로에 조각이 하나 이상 있어야 해요.", noSpec: "사진 경기장은 점으로 만든 거라 편집할 수 없어요 — 예시를 대신 불러왔어요.",
   },
 };

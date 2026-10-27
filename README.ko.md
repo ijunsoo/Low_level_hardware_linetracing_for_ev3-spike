@@ -3,7 +3,7 @@
 [English](README.md) | 한국어
 
 LEGO **SPIKE Prime**과 **EV3**로 만든 3센서 라인트레이서입니다.
-실기 코드를 **한 줄도 고치지 않고** 돌리는 시뮬레이터(PC·GPU·브라우저)로 다듬었습니다.
+실기와 같은 코드 파일을 돌리는 시뮬레이터(PC·GPU·브라우저)로 다듬었습니다. 시뮬에서는 빛값만 시뮬 센서에 맞추고, 센서를 raw 모드 대신 반사광으로 읽게 합니다.
 
 **▶ [브라우저에서 바로 실행](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — 설치 없이 프로그램을 골라 달려 봅니다. 로봇 모양과 경기장도 바꿀 수 있어요.
 
@@ -125,7 +125,7 @@ line_trace(VALUE=[68, 12, 72, 12, 116, 12], POWER=100, KP=0.088, KP2=0.433, KG=2
 
 | 도구 | 하는 일 |
 |---|---|
-| **CPU 시뮬레이터** `sim/core.py` | 실기 Pybricks 코드를 그대로 실행합니다. 모터 지연, 센서 발자국·노이즈·지연, 실측 루프 속도, 회전 미끄러짐을 반영합니다. |
+| **CPU 시뮬레이터** `sim/core.py` | 실기 Pybricks 코드 파일을 그대로 실행합니다(빛값·센서 모드만 시뮬에 맞춤). 모터 지연, 센서 발자국·노이즈·지연, 실측 루프 속도, 회전 미끄러짐을 반영합니다. |
 | **GPU 시뮬레이터** `sim/rl/torchsim.py` | 같은 물리를 PyTorch로 16,384대 동시에 돌립니다(약 65만 결정/초). `sim/rl/sweep_gpu.py`로 규칙 기반 상수를 수천 설정씩 탐색합니다. |
 | **강화학습** `sim/rl/ppo.py` | 규칙 기반 조향 위에 작은 신경망(잔차 정책)을 PPO로 학습합니다. `sim/rl/export_policy.py`가 정수 연산 Pybricks 코드로 내보냅니다(`spike/spike_lf3_rl.py`, `ev3/ev3_lf3_rl.py`). |
 

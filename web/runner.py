@@ -15,19 +15,24 @@ import traceback
 sys.path.insert(0, "/sim")
 import numpy as np                       # noqa: E402
 import core                              # noqa: E402
-import js                                # noqa: E402  (Pyodide: postMessage to the page)
-from pyodide.ffi import to_js            # noqa: E402
 
 STREAM_EVERY_S = 0.05                    # send new trace rows every this much simulated time
 MAX_CONSOLE = 400                        # program output lines kept per run
 MAX_PATH_MM = 60000                      # an arena's line may be at most 60 m long …
-MAX_SPAN_MM = 12000                      # … and fit in 12 m × 12 m
+MAX_SPAN_MM = 12000                      # … and fit in 12 m × 12 m …
+MAX_PIXELS = 25_000_000                  # … and its 1 mm raster (with the 150 mm margin) in about 25 m² (100 MB)
+LINE_WIDTH_MM = (5.0, 60.0)              # allowed line widths
 CMD_LAG_SPREAD_MS = 8.0                  # random worlds draw the command lag within the robot's own value ± this
 EDIT_KEYS = ["sensor_ports", "sensor_pos_mm", "sensor_white", "sensor_black", "motors", "wheel_diameter_mm",
              "axle_track_mm", "gear_ratio", "sensor_footprint_mm", "line_width_mm"]
 
 
 def _post(msg):
+    try:
+        import js                        # Pyodide: postMessage to the page
+        from pyodide.ffi import to_js
+    except ImportError:                  # on a PC (web/check_presets.py) there is no page to send to
+        return
     js.postMessage(to_js(msg, dict_converter=js.Object.fromEntries))
 
 
@@ -104,13 +109,25 @@ def _spec_track(spec, line_width):
     path = core.build_path(segs)
     extras = [[[float(a), float(b)] for a, b in e] for e in (spec.get("extras") or []) if len(e) >= 2]
     pts = np.vstack([path] + [np.asarray(e) for e in extras])
-    if float((pts.max(axis=0) - pts.min(axis=0)).max()) > MAX_SPAN_MM:
+    span = pts.max(axis=0) - pts.min(axis=0)
+    if float(span.max()) > MAX_SPAN_MM:
         raise ValueError("the arena is larger than %d m × %d m" % (MAX_SPAN_MM // 1000, MAX_SPAN_MM // 1000))
-    lw = float(spec.get("line_width_mm") or line_width)
+    if (span[0] + 300) * (span[1] + 300) > MAX_PIXELS:   # the raster core.Track would allocate (1 mm/px)
+        raise ValueError("the arena is too big for the browser: %.1f m × %.1f m (about %d m² at most)"
+                         % (span[0] / 1000, span[1] / 1000, MAX_PIXELS // 1_000_000))
+    lw = _line_width(spec.get("line_width_mm") or line_width)
     return core.Track(path, lw, extras=extras or None)
 
 
+def _line_width(lw):
+    lw = float(lw)
+    if not LINE_WIDTH_MM[0] <= lw <= LINE_WIDTH_MM[1]:
+        raise ValueError("the line width must be %g–%g mm" % LINE_WIDTH_MM)
+    return lw
+
+
 def arena(arena_json, line_width):
+    line_width = _line_width(line_width)
     a = json.loads(arena_json)
     if isinstance(a, str):
         return core.make_track(a, line_width)

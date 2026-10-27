@@ -27,8 +27,19 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+          cache: pip
 
-      # Standard library only: copies web/ and bundles the simulator and the program menu
+      # Publish only a simulator that passes the same checks as CI
+      - name: Install requirements
+        run: python -m pip install -r requirements.txt
+
+      - name: Regression test
+        run: python sim/regress.py
+
+      - name: Browser programs
+        run: python web/check_presets.py
+
+      # Copies web/ and bundles the simulator and the program menu
       - name: Build the browser simulator
         run: python web/build.py --out _site
 

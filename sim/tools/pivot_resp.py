@@ -1,4 +1,5 @@
-# 제자리 회전(|조향| ≥ 85) 시작 뒤 회전 속도가 얼마나 빨리 붙나 — 실기 블랙박스와 시뮬을 같은 4ms 기록 방식으로 비교
+# 제자리 회전(|조향| ≥ 85) 시작 뒤 회전 속도가 얼마나 빨리 붙나 — 실기 블랙박스와 시뮬을 같은 블랙박스 기록으로 비교
+#   (완성판 로그는 기록마다 실제 간격을 적어 그 시각으로 셈, 예전 7바이트 로그·시뮬은 4ms 간격)
 #   python3 pivot_resp.py diag_logs/bb_*.txt                                  (실기 로그만)
 #   python3 pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x --sim spike_3s_geo2:'{"gear_ratio": 3.3333}'
 #   기어만 2배로 바꾼 geo2는 40ms에 +344°/s, 실기 2배는 +144°/s → 토크 한계를 넣은 geo2x(시정수 ×2: +199, 60ms +248 vs 실기 +200)가 실기에 가까움
@@ -17,7 +18,8 @@ import bb_parse as B    # noqa: E402
 HORIZON = (20, 40, 60, 80, 100)
 
 
-def onsets(steer, yaw, ms=4):
+def onsets(steer, yaw, t):
+    # t: 기록 시각(ms) — 실기 완성판 로그는 기록마다 실제 간격, 예전 로그·시뮬은 4ms 간격
     out = []
     n = len(steer)
     for i in range(1, n):
@@ -25,7 +27,9 @@ def onsets(steer, yaw, ms=4):
             sg = 1 if steer[i] > 0 else -1          # 조향 + = 우회전 = 요레이트 −
             row = []
             for h in HORIZON:
-                j = i + h // ms
+                j = i
+                while j < n and t[j] - t[i] < h:
+                    j += 1
                 same = j < n and all(abs(steer[k]) >= 85 and (steer[k] > 0) == (sg > 0) for k in range(i, j + 1))
                 row.append(-sg * (yaw[j] - yaw[i]) if same else np.nan)
             out.append(row)
@@ -36,7 +40,7 @@ def real(path):
     with contextlib.redirect_stdout(io.StringIO()):
         hdr, rows = B.parse(open(path, encoding="utf-8").read())
     d = B.decode(hdr, rows)
-    return onsets([r["steer"] for r in d], [r["yaw"] for r in d], hdr["ms"])
+    return onsets([r["steer"] for r in d], [r["yaw"] for r in d], [r["t"] for r in d])
 
 
 def sim(profile, prof, worlds, track):
@@ -63,7 +67,7 @@ def sim(profile, prof, worlds, track):
         L, n = g["LOG"], g["STAT"][1]
         N = len(L) // 7
         rec = [L[(i % N) * 7:(i % N) * 7 + 7] for i in range(max(0, n - N), n)]
-        ev.append(onsets([r[3] - 128 for r in rec], [(r[6] - 128) * 8 for r in rec]))
+        ev.append(onsets([r[3] - 128 for r in rec], [(r[6] - 128) * 8 for r in rec], [4 * k for k in range(len(rec))]))
     return np.vstack(ev)
 
 

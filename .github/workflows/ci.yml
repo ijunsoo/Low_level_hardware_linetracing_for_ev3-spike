@@ -35,9 +35,15 @@ jobs:
           python -m pip install -r requirements.txt
           python -c "import sys, numpy, matplotlib; print(sys.version); print('numpy', numpy.__version__, '/ matplotlib', matplotlib.__version__)"
 
-      # 15 golden cases, compared exactly (results + trajectory hashes) against sim/regress_golden.json
+      # 15 golden cases, compared exactly (results + trajectory hashes) against sim/regress_golden.json,
+      # plus the finish rule (driving beside the line to the end is not a finish)
       - name: Regression test
         run: python sim/regress.py
+
+      # The browser menu's programs as the page runs them: competition programs (2x-gear model included)
+      # must finish in the default world and in most of the page's 8 randomized worlds
+      - name: Browser programs
+        run: python web/check_presets.py
 
       # Exit code is 0 whether the run finishes, times out or loses the line; non-zero only on a crash
       - name: Smoke run (EV3 final program)

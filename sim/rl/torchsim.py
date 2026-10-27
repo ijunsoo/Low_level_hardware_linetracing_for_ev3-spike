@@ -535,6 +535,7 @@ class TorchEnv:
                            * math.pi * self.base["wheel_diameter_mm"] / 360.0)
         z = lambda: torch.zeros(n, dtype=F32, device=self.d)  # noqa: E731
         self.s_prev, self.p_torn, self.mark, self.lat = z(), z(), z(), z()
+        self.s_on = z() - 1e9                    # 마지막으로 '라인 위'였던 진행 위치 (완주 판정, CPU와 같음)
         self.t_mark = torch.zeros(n, dtype=I64, device=self.d)
         self.a_prev = torch.zeros((n, 2), dtype=F32, device=self.d)
         self.hist = torch.zeros((n, 4, 3), dtype=F32, device=self.d)
@@ -585,6 +586,7 @@ class TorchEnv:
         self.p_torn[idx] = torch.as_tensor(self.rng.uniform(lo, hi, m), dtype=F32, device=d)
         self.s_prev[idx] = sim.max_s[idx]
         self.mark[idx] = sim.max_s[idx]
+        self.s_on[idx] = -1e9
         self.t_mark[idx] = 0
         self.a_prev[idx] = 0.0
         self.ep_ret[idx] = 0.0
@@ -625,8 +627,11 @@ class TorchEnv:
         self.mark = torch.where(moved, sim.max_s, self.mark)
         self.t_mark = torch.where(moved, now, self.t_mark)
         length = self.tpool.length[sim.ti]
+        self.s_on = torch.where(lat.abs() <= core.Sim.ON_LINE_MM, s, self.s_on)
         lost = lat.abs() > core.Sim.LOST_MM
         fin = s > length - core.Sim.FINISH_MM
+        lost = lost | (fin & (s - self.s_on > core.Sim.FINISH_WINDOW_MM))   # 결승 전에 라인 위가 없으면 이탈 (CPU와 같음)
+        fin = fin & ~lost
         stuck = now - self.t_mark > self.stuck_ms
         timeout = now > self.max_ms
         rew = rew + lost.to(F32) * self.r_lost + fin.to(F32) * self.r_finish

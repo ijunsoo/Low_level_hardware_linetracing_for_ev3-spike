@@ -5,7 +5,7 @@ English | [한국어](README.ko.md)
 [![CI](https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike/actions/workflows/ci.yml/badge.svg)](https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Run your **unmodified** [Pybricks](https://pybricks.com) line-following program on a PC or in a web browser.
+Run your [Pybricks](https://pybricks.com) line-following program on a PC or in a web browser: the same file that runs on the robot, with its light values set for the simulated sensors.
 The simulator is calibrated against real LEGO SPIKE Prime and EV3 robots.
 
 **▶ [Open the browser simulator](https://ijunsoo.github.io/Low_level_hardware_linetracing_for_ev3-spike/)** — nothing to install.
@@ -18,7 +18,7 @@ The simulator is calibrated against real LEGO SPIKE Prime and EV3 robots.
 
 | Feature | Details |
 |---|---|
-| **Your code, unchanged** | A mock `pybricks` package runs the same file on the robot and in the simulator. |
+| **The same program file** | A mock `pybricks` package runs the file you put on the robot. Set its light values for the simulated sensors and read them as reflected light, not raw mode (`--sub` does both without editing the file). |
 | **Calibrated to real robots** | Motor lag, turning slip, gear ratio, sensor footprint, sensor noise and lag, and the hub's loop rate are fitted to black-box logs from real robots. |
 | **Many tracks** | Curves, right angles, crossings and loops, a competition field traced from a photo, random competition arenas, or your own. |
 | **Measured, not guessed** | Randomized worlds, paired A/B comparisons, regression tests, and a decoder for the robot's black-box logs. |
@@ -61,8 +61,8 @@ Every run ends with one of these results:
 
 | Result | Meaning |
 |---|---|
-| `finish` | Reached the end of the track. |
-| `lost` | Went more than 200 mm from the line. |
+| `finish` | Reached the end of the track, having been on the line (within 40 mm) in the last 500 mm. |
+| `lost` | Went more than 200 mm from the line, or reached the end without being on the line in the last 500 mm. |
 | `timeout` | Hit the time limit (60 s by default). |
 | `stall` | The program kept looping without waiting, so simulated time stopped. |
 
@@ -88,6 +88,7 @@ The page runs the repository's own simulator (`sim/core.py` and the Pybricks moc
 - **Arenas:** the built-in tracks, random competition arenas (pick a number), or your own.
 - **Testing:** run once and watch, or test in 8 randomized worlds.
 - **Saving:** your robots and arenas stay in your browser. Arenas can be shared as JSON files.
+- **Export results:** save a JSON file with the code, robot, arena, options, worlds, results and the simulator's commit, so anyone can repeat the run.
 
 In the arena editor, write the route one piece per line. It starts at (0, 0), heading right.
 

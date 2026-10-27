@@ -13,7 +13,8 @@
 #    ev3_smoke      : EV3 목 스모크 (sim/tests)
 #    lf3_spike·ev3  : 3센서 규칙기반 실기 파일(spike/spike_lf3_rule.py, ev3/ev3_lf3_rule.py) 무수정 실행
 #    lf3_parity     : 같은 물리·입출력에서 SPIKE·EV3 파일 궤적이 같은지 (두 파일 로직 동일성)
-#  새 케이스는 골든이 없으면 NEW로 표시만 한다.
+#    완주 판정      : 라인 위에서 곧게 달리면 완주, 라인 옆 150mm를 나란히 달려 끝에 닿으면 이탈
+#  새 케이스는 골든이 없으면 NEW로 표시만 한다. 웹 메뉴의 완성판·예제는 web/check_presets.py가 검사.
 # =====================================================================
 import argparse
 import collections
@@ -106,6 +107,36 @@ def job_file(job):
         a = np.round(np.asarray(sim.trace, dtype=float), 6) + 0.0
         out["trace_z"] = hashlib.sha1(a.tobytes()).hexdigest()[:16]
     return job["key"], out
+
+
+STRAIGHT_PROGRAM = """
+from pybricks.pupdevices import Motor
+from pybricks.parameters import Port, Direction
+from pybricks.tools import wait
+lm = Motor(Port.E)
+rm = Motor(Port.F, Direction.COUNTERCLOCKWISE)
+while True:
+    lm.dc(60)
+    rm.dc(60)
+    wait(10)
+"""
+
+
+def check_finish_rule():
+    """완주 = 결승에서 센서가 라인 가까이 있을 때만: 라인 위에서 곧게 → 완주, 라인 옆 150mm를 나란히 → 이탈."""
+    p = core.load_profile("spike_3s_geo2")
+    out = []
+    for off in (0.0, 150.0):
+        sim = core.Sim(p, core.Track(core.build_path([("S", 1500)]), p["line_width_mm"]),
+                       start_lateral_mm=off, time_limit_s=20.0, seed=0)
+        sim.LOST_MM = 450.0
+        core.SIM = sim
+        try:
+            exec(compile(STRAIGHT_PROGRAM, "straight", "exec"), {"__name__": "__main__"})
+        except core.SimDone:
+            pass
+        out.append((sim.result or {}).get("reason"))
+    return out == ["finish", "lost"], out
 
 
 def job_curve(job):
@@ -229,6 +260,10 @@ def main():
         same = a == b
         print("SPIKE↔EV3 패리티:", "OK (궤적 동일)" if same else "FAIL %s" % par)
         bad += 0 if same else 1
+    if not args.only:
+        ok, got = check_finish_rule()
+        print("완주 판정:", "OK (라인 위 = 완주, 라인 옆 150mm 평행 = 이탈)" if ok else "FAIL %s" % got)
+        bad += 0 if ok else 1
     sys.exit(1 if bad else 0)
 
 

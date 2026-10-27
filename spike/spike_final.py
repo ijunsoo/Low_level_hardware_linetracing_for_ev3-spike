@@ -110,7 +110,8 @@ def find_yaw():
 
 STAT = [0, 0]           # [제어 횟수, 블랙박스 기록 수]
 RUN_MODE = [RAW_MODE]   # 실제로 달린 센서 모드 (raw가 안 돼 일반 모드로 바꿨으면 False)
-LOG = bytearray(LOG_N * 7)   # 블랙박스 [센서 좌·우·가운데, 조향+128, 파워, 상태, 회전속도/8+128]
+RUN_VAL = [None]        # 실제로 쓴 빛값 (자동보정 뒤) — 블랙박스 머리줄용
+LOG = bytearray(LOG_N * 8)   # 블랙박스 [센서 좌·우·가운데, 조향+128, 파워, 상태, 회전속도/8+128, 앞 기록과의 간격 ms]
 
 
 def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_STOP):
@@ -188,6 +189,7 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
             print("자동보정 VALUE", [wL, bL, wR, bR, wF, bF])
         else:
             print("자동보정 안 함 (좌우 센서를 흰 바닥에 두고 출발할 것) — VALUE 그대로")
+    RUN_VAL[0] = [wL, bL, wR, bR, wF, bF]
     gL, gR, gF = wL - bL, wR - bR, wF - bF
 
     pL, pR, pF = rd3()
@@ -361,6 +363,8 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
         else:
             # ---- 라인 놓침: 잠깐은 직전 조향, 그다음 기억한 쪽으로 강제 회전 ---- #
             t_str0 = now
+            br_n = 0                                # 직각 신호 연속 횟수는 라인을 놓치면 처음부터
+            br_last = 0
             if t_lost < 0:
                 t_lost = now
             if now - t_lost <= GAP_MS:
@@ -404,8 +408,9 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
                     BRK_CMD[1] = -100
                 power = 0                           # 블랙박스: 파워 0 = 브레이크 중
         if now - t_log >= LOG_MS:                   # 블랙박스 기록
+            gap = now - t_log                       # 앞 기록과의 실제 간격 (루프가 늦으면 LOG_MS보다 길다)
             t_log = now
-            j = li % LOG_N * 7
+            j = li % LOG_N * 8
             x = rL >> sh
             LOG[j] = x if x < 255 else 255
             x = rR >> sh
@@ -420,6 +425,7 @@ def run(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, AUTO_ST
                           | (64 if armed else 0))
             v = int(av(YAW_AXIS)) * YAW_SIGN // 8 + 128
             LOG[j + 6] = 0 if v < 0 else (255 if v > 255 else v)
+            LOG[j + 7] = gap if gap < 255 else 255
             li += 1
             STAT[1] = li
         steering_dc(steer, power)
@@ -458,16 +464,16 @@ def line_trace(VALUE, POWER, KP, KP2, KG, ST_BANK, ST_BANK_STR, RA_YAW, BRK_MS, 
                 hub.display.char("B")
             n = STAT[1]                             # 블랙박스: 정지 직전 2초 (sim/bb_parse.py로 해석)
             m = n if n < LOG_N else LOG_N
-            print("BB,%d,%d,7,%s,new" % (LOG_MS, m, ",".join(str(x >> (2 if RUN_MODE[0] else 0))
-                                                           for x in (VALUE if RUN_MODE[0] == RAW_MODE else VALUE0))))
+            used = RUN_VAL[0] or (VALUE if RUN_MODE[0] == RAW_MODE else VALUE0)   # 자동보정 뒤 실제로 쓴 값
+            print("BB,%d,%d,8,%s,new" % (LOG_MS, m, ",".join(str(x >> (2 if RUN_MODE[0] else 0)) for x in used)))
             hx = "0123456789abcdef"
             s = ""
             for k in range(n - 1, n - 1 - m, -1):   # 최신 → 과거: 출력이 도중에 끊겨도 정지 직전이 남음
-                j = k % LOG_N * 7
-                for q in range(7):
+                j = k % LOG_N * 8
+                for q in range(8):
                     b = LOG[j + q]
                     s += hx[b >> 4] + hx[b & 15]
-                if len(s) >= 196:
+                if len(s) >= 192:
                     print("BBD," + s)
                     s = ""
                     wait(30)                        # 블루투스 출력이 밀려 잘리지 않게

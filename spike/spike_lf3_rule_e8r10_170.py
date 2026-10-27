@@ -616,6 +616,8 @@ def run():
             last_good = steer
         else:
             t_str0 = now                            # 라인 놓침·뱅킹 중 → 직진 시간 다시 셈
+            br_n = 0                                # 직각 신호 연속 횟수는 라인을 놓치면 처음부터
+            br_last = 0
             if t_lost < 0:
                 t_lost = now
             if now - t_lost <= GAP_MS:              # 짧은 공백: 직전 조향 유지

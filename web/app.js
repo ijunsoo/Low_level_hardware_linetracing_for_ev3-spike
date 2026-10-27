@@ -19,6 +19,7 @@ let trackImg = null, trackKey = "", pendingKey = "";
 let runGeom = null;                     // robot geometry of the current run
 let frames = new Float32Array(0), nRows = 0, cols = 10;
 let result = null, lights = [], worlds = [], evalBase = null;   // evalBase: the default world of ▶ Run
+let runInputs = null, version = {};     // what the shown results were run with, and the simulator's commit (export)
 let playT = 0, playing = false, lastTs = 0;
 
 // ---------------------------------------------------------------- saved robots and arenas (this browser)
@@ -106,6 +107,7 @@ function setBusy(b) {
   $("eval").disabled = !ready || b;
   $("stop").disabled = !b;
   for (const id of ["prog", "robotSel", "arenaSel", "aseed", "dice", "editRobot", "editArena"]) $(id).disabled = b;
+  $("export").disabled = b || !runInputs || !(result || worlds.length);
 }
 function startWorker() {
   ready = false;
@@ -190,6 +192,7 @@ function loadProgram(id, autorun) {
 function clearResults() {
   // The trail, result, chart, world tests and console belong to the settings they were run with
   frames = new Float32Array(0); nRows = 0; result = null; lights = []; worlds = []; evalBase = null; runGeom = null;
+  runInputs = null; $("export").disabled = true;
   playT = 0; playing = false;
   $("console").textContent = ""; $("result").innerHTML = ""; $("evalbox").innerHTML = "";
   $("scrub").max = 0; $("scrub").value = 0; $("scrub").disabled = true; $("pp").disabled = true;
@@ -201,7 +204,8 @@ function settingsChanged() {
 function requestTrack() {
   if (!ready) return;
   const key = arenaJSON() + "|" + robotJSON();
-  if (key === trackKey || key === pendingKey) return;
+  if (key === trackKey) { pendingKey = ""; return; }   // back to what is drawn: ignore an older request still on its way
+  if (key === pendingKey) return;
   pendingKey = key;
   worker.postMessage({ type: "track", key, arena: arenaJSON(), robot: robotJSON() });
 }
@@ -230,15 +234,34 @@ function opts() {
 }
 function run() {
   if (!ready || busy) return;
-  requestTrack(); resetRun(); setBusy(true); setStatus(tr("running"));
-  worker.postMessage(Object.assign({ type: "run" }, opts()));
+  requestTrack(); resetRun(); runInputs = opts(); setBusy(true); setStatus(tr("running"));
+  worker.postMessage(Object.assign({ type: "run" }, runInputs));
 }
 $("run").addEventListener("click", run);
 $("eval").addEventListener("click", () => {
   if (!ready || busy) return;
-  requestTrack(); resetRun(); playing = false; setBusy(true); setStatus(tr("evaluating") + " 1/8");
-  worker.postMessage(Object.assign({ type: "eval", worlds: 8 }, opts()));
+  requestTrack(); resetRun(); runInputs = opts(); playing = false; setBusy(true); setStatus(tr("evaluating") + " 1/8");
+  worker.postMessage(Object.assign({ type: "eval", worlds: 8 }, runInputs));
 });
+$("export").addEventListener("click", () => {
+  // Everything needed to repeat the shown run or world test: inputs as run, results, and the simulator's commit
+  if (!runInputs) return;
+  const o = runInputs, data = {
+    simulator: "https://github.com/ijunsoo/Low_level_hardware_linetracing_for_ev3-spike",
+    commit: version.commit || "unknown", exported: new Date().toISOString(),
+    program: $("prog").value, code: o.code, robot: JSON.parse(o.robot), arena: JSON.parse(o.arena),
+    options: { offset: o.offset, seed: o.seed, lost: o.lost, limit: o.limit },
+    run: result ? { world: "default (the robot's own values)", result } : null,
+    worlds: worlds.length ? { generator: "web/runner.py _world(k)", default_world: evalBase,
+      list: worlds.map((w) => ({ k: w.k, cmd_lag_ms: w.world.cmd_lag_ms, battery: w.world.battery, result: w.result })) } : null,
+  };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: "application/json" }));
+  a.download = "lfsim-" + data.exported.slice(0, 19).replace(/[:T]/g, "-") + ".json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+fetch("version.json").then((r) => r.json()).then((v) => { version = v; }).catch(() => {});
 $("stop").addEventListener("click", () => {
   worker.terminate(); setStatus(tr("stopped")); trackKey = ""; pendingKey = ""; startWorker();
 });

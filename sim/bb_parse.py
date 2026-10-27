@@ -1,6 +1,8 @@
 # =====================================================================
-#  블랙박스 해석: spike_lf3_rule.py / ev3_lf3_rule.py (+ *_rl.py)가 정지 버튼에서 출력하는
-#  BB / BBD 줄(정지 직전 2초, 4ms 간격) → 사람이 읽는 시간표 + 이벤트 요약
+#  블랙박스 해석: spike_final.py / ev3_final.py (+ *_lf3_rule*.py, *_rl.py)가 정지 버튼에서 출력하는
+#  BB / BBD 줄(정지 직전 2초) → 사람이 읽는 시간표 + 이벤트 요약
+#  시간: 완성판은 기록마다 앞 기록과의 실제 간격(ms)을 8번째 바이트에 적는다 (루프가 늦으면 4ms보다 길다).
+#        7바이트 기록(예전 파일)은 머리줄 간격(4ms)으로 본다
 #
 #    python3 sim/bb_parse.py 붙여넣은로그.txt            # 전체 표
 #    python3 sim/bb_parse.py 로그.txt --events           # 상태가 바뀌는 순간만
@@ -50,13 +52,23 @@ def norm(r, w, b):
     return max(0, min(100, (min(max(r, b), w) - b) * 100 // max(1, w - b)))
 
 
+def times(hdr, rows):
+    """기록 시각(ms, 정지 직전 기록 = 0). 8바이트 기록은 각 기록의 실제 간격, 7바이트는 머리줄 간격."""
+    n = len(rows)
+    if hdr["w"] < 8:
+        return [(k - n + 1) * hdr["ms"] for k in range(n)]
+    t = [0] * n
+    for k in range(n - 1, 0, -1):
+        t[k - 1] = t[k] - rows[k][7]
+    return t
+
+
 def decode(hdr, rows):
     wL, bL, wR, bR, wF, bF = hdr["value"]
     out = []
-    n = len(rows)
-    for k, r in enumerate(rows):
+    for t, r in zip(times(hdr, rows), rows):
         f = r[5]
-        out.append(dict(t=(k - n + 1) * hdr["ms"], rL=r[0], rR=r[1], rF=r[2],
+        out.append(dict(t=t, rL=r[0], rR=r[1], rF=r[2],
                         nL=norm(r[0], wL, bL), nR=norm(r[1], wR, bR), nF=norm(r[2], wF, bF),
                         steer=r[3] - 128, power=r[4], online=bool(f & 1), ahead=bool(f & 2),
                         white=bool(f & 4), bank=bool(f & 8), side="R" if f & 16 else "L",
@@ -88,8 +100,11 @@ def diagnose(rows):
     allw = [d for d in rows if d["nL"] > 75 and d["nR"] > 75 and d["nF"] > 75]
     banks = [d for d in rows if d["bank"]]
     if allw and not banks:
-        msgs.append("세 센서 모두 흰색인 기록이 %d개(%.0fms)인데 뱅킹이 한 번도 없음 → 이탈 판정이 안 됨 "
-                    "(상태 '선'이 계속 켜져 있으면 앞/흰 비트 확인)" % (len(allw), len(allw) * 4))
+        msgs.append("세 센서 모두 흰색인 기록이 %d개인데 뱅킹이 한 번도 없음 → 이탈 판정이 안 됨 "
+                    "(상태 '선'이 계속 켜져 있으면 앞/흰 비트 확인)" % len(allw))
+    gaps = [b["t"] - a["t"] for a, b in zip(rows, rows[1:])]
+    if gaps and max(gaps) > 8:
+        msgs.append("기록 간격 최대 %dms (평균 %.1fms) — 루프가 늦어진 구간이 있음" % (max(gaps), sum(gaps) / len(gaps)))
     if banks:
         b0 = banks[0]
         msgs.append("첫 뱅킹 t=%dms 방향 %s (그때 기억 %s, 조향 %+d, 요레이트 %+d°/s)"
@@ -111,7 +126,9 @@ def main():
     text = open(args.log, encoding="utf-8").read() if args.log else sys.stdin.buffer.read().decode("utf-8", "replace")
     hdr, raw = parse(text)
     rows = decode(hdr, raw)
-    print("블랙박스 %d개 × %dms (VALUE %s)" % (len(rows), hdr["ms"], hdr["value"]))
+    span = rows[-1]["t"] - rows[0]["t"] if rows else 0
+    print("블랙박스 %d개 · %dms 동안 (%s · VALUE %s)" % (len(rows), span, "실제 간격 기록" if hdr["w"] >= 8
+                                                       else "%dms 간격으로 봄" % hdr["ms"], hdr["value"]))
     print("     t  생값 좌 우 가 | 정규화 좌  우  가 | 조향·파워         | 상태          | 요레이트")
     for d in (events(rows) if args.events else rows):
         print(fmt(d))

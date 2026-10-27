@@ -58,7 +58,7 @@ class _Stub:
 class _IMU:
     """SPIKE 허브 IMU: 요레이트만 재현 (deg/s, 좌회전 +, 지연·노이즈 0).
     Z축 외(X/Y) 각속도는 0, 가속도는 Z축에 중력만 (v11 요축 자동감지 대응).
-    heading()은 좌회전 + 누적각 — 실기 부호와 다를 수 있어 코드가 자가판별할 것."""
+    heading()은 Pybricks 문서처럼 시계방향(우회전) + 누적각."""
 
     def __init__(self):
         self._h0 = core.SIM.h if core.SIM else 0.0
@@ -79,10 +79,10 @@ class _IMU:
 
     def heading(self):
         _poll()
-        return math.degrees(core.SIM.h - self._h0)
+        return -math.degrees(core.SIM.h - self._h0)     # 시뮬 방향은 반시계 + → 시계 +로
 
     def reset_heading(self, angle=0):
-        self._h0 = core.SIM.h - math.radians(angle)
+        self._h0 = core.SIM.h + math.radians(angle)
 
     def ready(self):
         return True

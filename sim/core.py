@@ -358,7 +358,9 @@ def _footprint_offsets(radius, n_ring=10):
 
 class Sim:
     LOST_MM = 200.0     # 라인 중심에서 이만큼 벗어나면 이탈 판정 (뱅킹 복구 여지 포함)
-    FINISH_MM = 40.0    # 트랙 끝에서 이 거리 안이면 완주
+    FINISH_MM = 40.0    # 트랙 끝에서 이 거리 안이면 완주 …
+    ON_LINE_MM = 40.0   # … 단 기준점(센서)이 라인 중심에서 이 거리 안('라인 위')이었던 곳이
+    FINISH_WINDOW_MM = 500.0  # 결승 전 이 진행 거리 안에 있어야 함. 없으면 이탈 (라인 옆을 나란히 달려 끝에 닿은 것)
     STALL_CALLS = 200000  # 시간이 안 흐르는 목 호출이 이만큼 이어지면 무한루프로 보고 종료
 
     def __init__(self, params=None, track=None, start_lateral_mm=0.0,
@@ -487,6 +489,7 @@ class Sim:
         self._lat_now = 0.0
         self._lat_sum = 0.0
         self._lat_n = 0
+        self._s_on = -1e9           # 마지막으로 '라인 위'(ON_LINE_MM 안)였던 진행 위치
 
         self.trace = []             # (t, x, y, lat, dutyL, dutyR, h, raw...)
         self._next_trace = 0.0
@@ -829,10 +832,12 @@ class Sim:
         self._lat_sum += self._lat_now
         self._lat_n += 1
 
+        if self._lat_now <= self.ON_LINE_MM:
+            self._s_on = s_now
         if self._lat_now > self.LOST_MM:
             self._finish("lost")
         if self.track.s[self._pi] > self.track.length - self.FINISH_MM:
-            self._finish("finish")
+            self._finish("finish" if s_now - self._s_on <= self.FINISH_WINDOW_MM else "lost")
 
     def _finish(self, reason):
         # 첫 결과를 유지: 프로그램의 finally(정지 시 출력·wait)가 시간을 더 흘려도 덮어쓰지 않음

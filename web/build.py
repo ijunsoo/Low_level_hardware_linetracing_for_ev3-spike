@@ -7,12 +7,14 @@
 #
 #  sim_bundle.json  the simulator (sim/core.py, the pybricks mock, profiles, photo track) + web/runner.py
 #  programs.json    the programs in the program menu, adjusted for the simulator where needed
+#  version.json     the commit the page was built from (written into exported results)
 # =====================================================================
 import argparse
 import glob
 import json
 import os
 import shutil
+import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -53,6 +55,18 @@ def read(path):
         return f.read()
 
 
+def commit():
+    # GitHub Actions sets GITHUB_SHA; a local build adds "+changes" when the checkout has uncommitted edits
+    if os.environ.get("GITHUB_SHA"):
+        return os.environ["GITHUB_SHA"]
+    try:
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+        dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True).stdout
+        return sha.strip() + ("+changes" if dirty.strip() else "")
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
 def main():
     ap = argparse.ArgumentParser(description="Build the browser simulator")
     ap.add_argument("--out", default=os.path.join(HERE, "dist"))
@@ -75,6 +89,8 @@ def main():
                       "code": code})
     with open(os.path.join(args.out, "programs.json"), "w", encoding="utf-8") as f:
         json.dump(progs, f, ensure_ascii=False)
+    with open(os.path.join(args.out, "version.json"), "w", encoding="utf-8") as f:
+        json.dump({"commit": commit()}, f)
 
     for name in PAGE_FILES:
         shutil.copy(os.path.join(HERE, name), os.path.join(args.out, name))

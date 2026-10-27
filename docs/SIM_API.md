@@ -45,8 +45,8 @@ The run stops at the first of these events and prints
 
 | `reason` | When |
 |---|---|
-| `finish` | progress along the line reaches the last 40 mm (`Sim.FINISH_MM`) |
-| `lost` | the tracked point is more than 200 mm (`Sim.LOST_MM`, `--lost`) from the centre line |
+| `finish` | progress along the line reaches the last 40 mm (`Sim.FINISH_MM`), and the tracked point was within 40 mm of the centre line (`Sim.ON_LINE_MM`) somewhere in the last 500 mm (`Sim.FINISH_WINDOW_MM`) |
+| `lost` | the tracked point is more than 200 mm (`Sim.LOST_MM`, `--lost`) from the centre line, or it reaches the end without having been on the line in the last 500 mm |
 | `timeout` | simulated time passed `--limit` |
 | `stall` | 200 000 mock calls in a row cost no simulated time (a busy loop, see below) |
 | `none` | the program returned by itself (no main loop) |
@@ -106,7 +106,7 @@ object).
 | `imu.angular_velocity(Axis.X / Axis.Y)` | 0.0 |
 | `imu.angular_velocity()` | `(0.0, 0.0, z)` — X, Y and Z like a real hub, with Z as above |
 | `imu.acceleration(axis)` | Z: 9810.0 (gravity, mm/s²), X and Y: 0.0, no axis: `(0.0, 0.0, 9810.0)` |
-| `imu.heading()`, `imu.reset_heading(angle=0)` | degrees turned since the hub was created or reset, left turn positive. The mock notes this sign may differ from a real hub |
+| `imu.heading()`, `imu.reset_heading(angle=0)` | degrees turned since the hub was created or reset, clockwise (right turn) positive, as in the Pybricks documentation |
 | `imu.ready()`, `imu.stationary()` | `True`; yaw rate below 1 deg/s |
 
 ### `pybricks.pupdevices`

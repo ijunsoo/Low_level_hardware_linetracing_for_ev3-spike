@@ -214,7 +214,11 @@ function parseArena(text) {
       if (v.length < 4 || v.length % 2) bad(tr("errArgs"));
       const pts = []; for (let j = 0; j < v.length; j += 2) pts.push([v[j], v[j + 1]]);
       spec.extras.push(pts);
-    } else if (k === "W") { if (v.length !== 1) bad(tr("errArgs")); spec.line_width_mm = v[0]; }
+    } else if (k === "W") {
+      if (v.length !== 1) bad(tr("errArgs"));
+      if (!(v[0] >= 5 && v[0] <= 60)) bad(tr("errWidth"));   // the simulator also refuses others (web/runner.py)
+      spec.line_width_mm = v[0];
+    }
     else bad(tr("errUnknown", { p: parts[0] }));
   });
   if (!spec.segs.length) throw new Error(tr("errEmpty"));
@@ -297,7 +301,7 @@ function openArenaEditor() {
   $("arenaDlg").showModal();
 }
 $("editArena").addEventListener("click", openArenaEditor);
-$("aText").addEventListener("input", aPreview);
+$("aText").addEventListener("input", () => aPreview());   // not aPreview directly: the event would count as "now"
 $("aName").addEventListener("input", () => { $("aName").dataset.touched = "1"; });
 $("aLoadRandom").addEventListener("click", () => {
   aWait = "random";

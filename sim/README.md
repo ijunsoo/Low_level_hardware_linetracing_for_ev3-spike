@@ -2,7 +2,8 @@
 
 English | [한국어](README.ko.md)
 
-A digital twin that runs real Pybricks robot programs **unmodified** on a PC.
+A digital twin that runs the same Pybricks program files as the real robots, on a PC.
+Two things differ: the light values must match the simulated sensors, and sensors are read as reflected light (the raw mode 3 is not modeled). `--sub` sets both without editing the file.
 It models motor acceleration (asymmetric first-order lag), turning slip, the sensor footprint, noise and lag, and the control-loop rate measured on real hubs.
 Both SPIKE Prime (with EV3 color sensors) and EV3 (Pybricks v4) are supported.
 
@@ -96,8 +97,8 @@ A run ends with one of these results:
 
 | `reason` | Meaning |
 |---|---|
-| `finish` | Reached the end of the track |
-| `lost` | Got more than 200 mm from the line (`Sim.LOST_MM`; measured at the sensors on the measured-geometry profiles) |
+| `finish` | Reached the end of the track, having been on the line (within `Sim.ON_LINE_MM` = 40 mm) in the last `Sim.FINISH_WINDOW_MM` = 500 mm |
+| `lost` | Got more than 200 mm from the line (`Sim.LOST_MM`; measured at the sensors on the measured-geometry profiles), or reached the end without being on the line in the last 500 mm (driving beside the line is not a finish) |
 | `timeout` | Hit the time limit (`--limit`, default 60 s) |
 | `stall` | 200,000 calls in a row without simulated time passing — an endless loop that never waits or touches the hardware |
 
