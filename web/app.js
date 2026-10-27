@@ -18,7 +18,7 @@ const H = {};                           // hooks set by editors.js
 let trackImg = null, trackKey = "", pendingKey = "";
 let runGeom = null;                     // robot geometry of the current run
 let frames = new Float32Array(0), nRows = 0, cols = 10;
-let result = null, lights = [], worlds = [];
+let result = null, lights = [], worlds = [], evalBase = null;   // evalBase: the default world of ▶ Run
 let playT = 0, playing = false, lastTs = 0;
 
 // ---------------------------------------------------------------- saved robots and arenas (this browser)
@@ -160,7 +160,8 @@ function onWorker(e) {
     if (m.error) consoleLine(m.error, "err");
     setBusy(false); setStatus(""); showResult();
   } else if (m.type === "world") {
-    worlds.push({ k: m.k, result: m.result, trail: floats(m.trail) });
+    worlds.push({ k: m.k, result: m.result, trail: floats(m.trail), world: m.world || {} });
+    evalBase = m.base || null;
     if (m.error) consoleLine(m.error, "err");
     if (m.k + 2 <= 8) setStatus(tr("evaluating") + " " + (m.k + 2) + "/8");
     renderEval();
@@ -188,7 +189,7 @@ function loadProgram(id, autorun) {
 }
 function clearResults() {
   // The trail, result, chart, world tests and console belong to the settings they were run with
-  frames = new Float32Array(0); nRows = 0; result = null; lights = []; worlds = []; runGeom = null;
+  frames = new Float32Array(0); nRows = 0; result = null; lights = []; worlds = []; evalBase = null; runGeom = null;
   playT = 0; playing = false;
   $("console").textContent = ""; $("result").innerHTML = ""; $("evalbox").innerHTML = "";
   $("scrub").max = 0; $("scrub").value = 0; $("scrub").disabled = true; $("pp").disabled = true;
@@ -271,12 +272,15 @@ function renderEval() {
   if (!worlds.length) return;
   const fin = worlds.filter((w) => w.result.reason === "finish");
   const mean = fin.length ? fin.reduce((a, w) => a + w.result.time_s, 0) / fin.length : 0;
-  let h = `<p class="note">${esc(tr("evalHead"))}</p><p><b>${esc(tr("finished", { n: fin.length, N: worlds.length }))}</b>`
+  let h = `<p class="note">${esc(tr("evalHead"))}</p>`;
+  if (evalBase) h += `<p class="note">${esc(tr("evalBase", { lag: evalBase.cmd_lag_ms.toFixed(0), bat: Math.round(100 * evalBase.battery) }))}</p>`;
+  h += `<p><b>${esc(tr("finished", { n: fin.length, N: worlds.length }))}</b>`
     + (fin.length ? ` · ${esc(tr("meanTime", { t: mean.toFixed(2) }))}` : "") + "</p>";
-  h += `<table><tr><th>${esc(tr("world"))}</th><th>${esc(tr("reason"))}</th><th>${esc(tr("time"))}</th></tr>`;
+  h += `<table><tr><th>${esc(tr("world"))}</th><th>${esc(tr("reason"))}</th><th>${esc(tr("time"))}</th><th>${esc(tr("cmdLag"))}</th><th>${esc(tr("battery"))}</th></tr>`;
   for (const w of worlds) {
-    const r = w.result;
-    h += `<tr><td class="n">${w.k + 1}</td><td><span class="badge ${esc(r.reason)}">${esc(reasonName(r.reason))}</span></td><td class="n">${(+r.time_s || 0).toFixed(2)} s</td></tr>`;
+    const r = w.result, x = w.world;
+    h += `<tr><td class="n">${w.k + 1}</td><td><span class="badge ${esc(r.reason)}">${esc(reasonName(r.reason))}</span></td><td class="n">${(+r.time_s || 0).toFixed(2)} s</td>`
+      + `<td class="n">${x.cmd_lag_ms != null ? (+x.cmd_lag_ms).toFixed(0) + " ms" : ""}</td><td class="n">${x.battery != null ? Math.round(100 * x.battery) + "%" : ""}</td></tr>`;
   }
   $("evalbox").innerHTML = h + "</table>";
 }

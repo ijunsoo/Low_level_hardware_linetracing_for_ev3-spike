@@ -22,6 +22,7 @@ STREAM_EVERY_S = 0.05                    # send new trace rows every this much s
 MAX_CONSOLE = 400                        # program output lines kept per run
 MAX_PATH_MM = 60000                      # an arena's line may be at most 60 m long …
 MAX_SPAN_MM = 12000                      # … and fit in 12 m × 12 m
+CMD_LAG_SPREAD_MS = 8.0                  # random worlds draw the command lag within the robot's own value ± this
 EDIT_KEYS = ["sensor_ports", "sensor_pos_mm", "sensor_white", "sensor_black", "motors", "wheel_diameter_mm",
              "axle_track_mm", "gear_ratio", "sensor_footprint_mm", "line_width_mm"]
 
@@ -156,12 +157,19 @@ class _Console:
 
 
 def _world(params, base, k):
-    # Randomized world k, as in the regression sweeps: motor lag, battery, sensor noise/lag, command lag,
-    # IMU lag, turning authority and wheel wobble
+    # Randomized world k: motor lag, battery, sensor noise/lag, command lag, IMU lag, turning authority and
+    # wheel wobble. The command lag is drawn around the robot's own value (32 ms → 24–40 ms, the spread fitted
+    # on real SPIKE black boxes); the research sweeps draw 0–35 ms, which made most worlds easier than ▶ Run.
     import eval_lf3 as EV
     weff = [1.4, 1.6] if base.startswith("spike_3s_geo2") else [1.15, 1.5]
-    a = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=weff, wob=[0.005, 0.035])
+    lag = float(params.get("cmd_lag_ms") or 0.0)
+    a = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[max(0.0, lag - CMD_LAG_SPREAD_MS), lag + CMD_LAG_SPREAD_MS],
+             imulag=[0, 20], weff=weff, wob=[0.005, 0.035])
     return EV.world(params, k, a)
+
+
+def _world_info(params):
+    return {"cmd_lag_ms": float(params.get("cmd_lag_ms") or 0.0), "battery": float(params.get("battery_scale", 1.0))}
 
 
 def run_program(code, robot, arena_, offset=0.0, seed=0, lost=450.0, limit=60.0, world=-1, stream=True):
@@ -220,14 +228,16 @@ def run_program(code, robot, arena_, offset=0.0, seed=0, lost=450.0, limit=60.0,
         return None
     step = max(1, int(round(0.02 / 0.005)))
     trail = np.asarray([(row[1], row[2]) for row in sim.trace[::step]], dtype=np.float32).ravel().tobytes()
-    return {"result": r, "error": error, "trail": trail}
+    return {"result": r, "error": error, "trail": trail, "world": _world_info(params)}
 
 
 def evaluate(code, robot, arena_, worlds=8, lost=450.0, limit=60.0):
     # Robustness check, like evaluating an RL policy: the same program in `worlds` randomized worlds
+    base = _world_info(robot_params(robot))          # the default world of ▶ Run, shown for comparison
     for k in range(worlds):
         out = run_program(code, robot, arena_, lost=lost, limit=limit, world=k, stream=False)
-        _post({"type": "world", "k": k, "result": out["result"], "error": out["error"], "trail": out["trail"]})
+        _post({"type": "world", "k": k, "result": out["result"], "error": out["error"], "trail": out["trail"],
+               "world": out["world"], "base": base})
         if out["error"]:
             break
     _post({"type": "eval_done"})
