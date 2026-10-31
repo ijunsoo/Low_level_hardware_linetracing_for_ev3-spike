@@ -9,6 +9,7 @@ import io
 import itertools
 import math
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -92,7 +93,7 @@ def show_formula():
         rows = [[taus(M, g, mass, iz, r, b) for mass, iz in ROBOTS] for g in (G1, G2)]
         print("  모터 %s | 1배 직진 %.2f~%.2fs 회전 %.2f~%.2fs | 2배 직진 %.2f~%.2fs 회전 %.2f~%.2fs" % (
             name, rows[0][0][0], rows[0][1][0], rows[0][0][1], rows[0][1][1], rows[1][0][0], rows[1][1][0], rows[1][0][1], rows[1][1][1]))
-    print("  시뮬 프로파일 | 1배 spike_3s_geo2 직진 %.2fs 회전 %.2fs | 2배 spike_3s_geo2x 직진 %.2fs 회전 %.2fs (1배는 실기 기록, 2배는 실기 회전 1번에 맞춘 값)" % (
+    print("  시뮬 프로파일 | 1배 spike_3s_geo2 직진 %.2fs 회전 %.2fs | 2배 spike_3s_geo2x 직진 %.2fs 회전 %.2fs (1배는 실기 기록, 2배 회전은 실기 기록 7.3초에 맞춘 값 · 직진은 못 잼)" % (
         p1["motor_tau_s"], p1["yaw_tau_s"], p2["motor_tau_s"], p2["yaw_tau_s"]))
     print("  → 실기 회전 %.2fs ≈ 모터 혼자 %.3fs: 회전할 때 바퀴가 많이 미끄러져 모터가 로봇 무게를 거의 못 느낌" % (
         p1["yaw_tau_s"], A["J"] / A["kkr"]))
@@ -193,7 +194,12 @@ def run_final():
     src = open(os.path.join(ROOT, path), encoding="utf-8").read()
     for a, b in edits:
         src = src.replace(a, b)
+    # 2배 모형에는 2배 상수로 (완성판 마지막 줄은 1.5배 기준 — 설명 주석의 GEAR=2 줄로 바꿈)
+    two = re.search(r"#\s+2배:\s+(GEAR=2, .*?BRK_MS=\d+)", src).group(1)
+    src, n = re.subn(r"GEAR=1\.5, .*?BRK_MS=\d+(?=, AUTO_STOP)", two, src)
+    assert n == 1, "완성판 마지막 줄에서 1.5배 상수를 못 찾음"
     rand = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=[1.4, 1.6], wob=[0.005, 0.035])
+    old = dict(cmd_lag_ms=32.0, yaw_tau_s=0.1, w_eff_scale=1.5)    # 10-31 이전 2배 모형 (물리식 줄도 이 미끄러짐 기준)
 
     def one(params, track, off=0.0, seed=0):
         sim = core.Sim(params, core.make_track(track, params["line_width_mm"]), start_lateral_mm=off, time_limit_s=40, seed=seed)
@@ -208,16 +214,21 @@ def run_final():
 
     phys = physics_profile()
     variants = (("지금 2배 (spike_3s_geo2x)", {}),
-                ("물리식 2배 %.3f/%.3f" % (phys["motor_tau_s"], phys["yaw_tau_s"]), dict(phys, motor_tau_dn_s=phys["motor_tau_s"])),
-                ("물리식 직진만 %.3f/0.1" % phys["motor_tau_s"], dict(motor_tau_s=phys["motor_tau_s"], motor_tau_dn_s=phys["motor_tau_s"])))
+                ("예전 2배 0.2/0.1 · w_eff 1.5", old),
+                ("물리식 2배 %.3f/%.3f" % (phys["motor_tau_s"], phys["yaw_tau_s"]),
+                 dict(old, motor_tau_s=phys["motor_tau_s"], motor_tau_dn_s=phys["motor_tau_s"], yaw_tau_s=phys["yaw_tau_s"])),
+                ("물리식 직진만 %.3f/0.1" % phys["motor_tau_s"],
+                 dict(old, motor_tau_s=phys["motor_tau_s"], motor_tau_dn_s=phys["motor_tau_s"])))
     for name, over in variants:
         base = dict(core.load_profile("spike_3s_geo2x"), **over)
+        w = base["w_eff_scale"]
+        rand_w = dict(rand, weff=[w * 1.4 / 1.5, w * 1.6 / 1.5])     # 무작위 월드 미끄러짐은 모형 값 ±7% (웹과 같음)
         cells = []
         for track in ("main", "hard", "rightangle", "photo@1.3"):
             r = one(base, track)
             done = []
             for k in range(8):
-                p, off = EV.world(base, k, rand)
+                p, off = EV.world(base, k, rand_w)
                 rr = one(p, track, off, k)
                 if rr["reason"] == "finish":
                     done.append(rr["time_s"])

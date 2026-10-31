@@ -178,7 +178,13 @@ def _world(params, base, k):
     # wheel wobble. The command lag is drawn around the robot's own value (32 ms → 24–40 ms, the spread fitted
     # on real SPIKE black boxes); the research sweeps draw 0–35 ms, which made most worlds easier than ▶ Run.
     import eval_lf3 as EV
-    weff = [1.4, 1.6] if base.startswith("spike_3s_geo2") else [1.15, 1.5]
+    # Turning slip: the fitted geo2 profiles draw ±7 % around their own value (1.5 → 1.4–1.6, the 2× model's
+    # 3.1 → 2.9–3.3); the other profiles keep the research sweeps' fixed range.
+    if base.startswith("spike_3s_geo2"):
+        w = float(params.get("w_eff_scale", 1.5))
+        weff = [w * 1.4 / 1.5, w * 1.6 / 1.5]
+    else:
+        weff = [1.15, 1.5]
     lag = float(params.get("cmd_lag_ms") or 0.0)
     a = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[max(0.0, lag - CMD_LAG_SPREAD_MS), lag + CMD_LAG_SPREAD_MS],
              imulag=[0, 20], weff=weff, wob=[0.005, 0.035])

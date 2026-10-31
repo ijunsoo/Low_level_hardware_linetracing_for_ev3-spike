@@ -61,13 +61,13 @@ SPIKE Prime(+EV3 컬러센서)과 EV3(Pybricks v4) 둘 다 지원합니다.
 | 프로파일 | 내용 |
 |---|---|
 | `spike_3s_geo2` | **SPIKE 1배 기어 기본.** 실측 치수(센서 3개 23mm 간격 @170mm, 윤거 205mm, 바퀴 80mm) + 회전 보정(시정수 0.05s, w_eff 1.5) |
-| `spike_3s_geo2x` | **SPIKE 2배 기어 기본.** geo2 + 기어 2배 + 모터·회전 시정수 ×2 (토크 한계) |
-| `spike_3s_geo2_15x` | **SPIKE 1.5배 기어 (권장, 아직 실측 없음).** geo2 + 기어 1.5배(`gear_ratio` 2.5), 시정수 0.142 / 0.071초 = 실측 1배·2배 사이를 모터 물리식으로 보간. 대회용 완성판 상수를 이 기어에 맞춤 |
+| `spike_3s_geo2x` | **SPIKE 2배 기어 기본.** geo2 + 기어 2배, 회전은 실기 2배 블랙박스 7.3초로 다시 맞춤(지연 40ms, 시정수 0.05초, w_eff 3.1). 같은 조향에서 1배와 거의 같은 속도로 돎 (토크 한계) |
+| `spike_3s_geo2_15x` | **SPIKE 1.5배 기어 (권장, 아직 실측 없음).** geo2 + 기어 1.5배(`gear_ratio` 2.5), 시정수 0.142 / 0.071초 = 실측 1배와 다시 맞추기 전 2배 모형 사이를 모터 물리식으로 보간. 회전을 실제보다 크게 낼 수 있어 블랙박스로 확인 필요. 대회용 완성판 상수를 이 기어에 맞춤 |
 | `ev3_3s_geo` | EV3 (포트 S1·S3·S2, 모터 A·B / C·D, 자이로 없음) |
 | `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s`(= `robot_params.json`) | 위 프로파일들의 상속 단계 (예전 측정) |
 | `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 센서 4개 실험: 3개 + D 읽기만 / 4개 일렬 / 3개 + 앞 가운데 |
 
-geo2·geo2x·geo2_15x로 평가할 때는 `--weff 1.4,1.6`을 함께 줍니다.
+geo2·geo2_15x로 평가할 때는 `--weff 1.4,1.6`, geo2x는 `--weff 2.9,3.3`을 함께 줍니다 (웹 무작위 월드는 프로파일 값 ±7%에서 뽑음).
 
 | 트랙 | 내용 |
 |---|---|
@@ -104,16 +104,18 @@ python3.13 sim/run_sim.py ev3/ev3_lf3_rule.py --profile ev3_3s_geo --track hard
 | `stop_test.py` | 정지 버튼 시험: 정지 후 출력량, 프로그램이 붙잡는 시간, 그동안 바퀴가 더 굴러간 거리 |
 | `step_dump.py` | 한 월드의 스텝별 센서·오차·조향·위치 |
 | `pivot_resp.py` | 제자리 회전 뒤 회전 속도가 붙는 정도: 실기 블랙박스 vs 시뮬 |
+| `bb_replay.py` | 블랙박스에 기록된 조향 명령을 프로파일 구동 모형에 그대로 넣어, 회전 속도를 실기 자이로와 모든 순간 비교. `--fit` 구동 지연·회전 시정수·w_eff 탐색 |
 | `physics_check.py` | 공개된 SPIKE 모터값(Pybricks 펌웨어 모델) → 직진·회전 시정수 vs 프로파일. `--mujoco` MuJoCo 로봇, `--final` 물리식 2배 모형으로 완성판 주행 ([`docs/PHYSICS_ENGINE.ko.md`](../docs/PHYSICS_ENGINE.ko.md)) |
 | `make4.py`, `make_guard.py`, `make_sent.py`, `make_bank.py` | 센서 4개·원 대책·앞 센티넬·곡선 강제 회전 실험 변형 생성 → `tools/variants/` (git 제외) |
 
 ```bash
 B='{"RAW_MODE": false, "VALUE": [34, 6, 22, 3, 21, 3], "AUTO_CAL": false}'
 python3.13 sim/tools/corner_eval.py '[["85", {"ST_BANK": 85}], ["75", {}]]' --src spike/spike_lf3_rule_e8r10_170.py \
-  --profile spike_3s_geo2x --fwd 170 --weff 1.4,1.6 --base "$B" \
+  --profile spike_3s_geo2x --fwd 170 --weff 2.9,3.3 --base "$B" \
   --tracks rightangle,main,hard,photo@1.3 --lost 450 --worlds 32 --dump /tmp/bank.json
 python3.13 sim/tools/paired.py "/tmp/bank.json:85" "/tmp/bank.json:75"
 python3.13 sim/tools/pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x
+python3.13 sim/tools/bb_replay.py diag_logs/bb_2026-10-31_2x_6s.txt diag_logs/bb_2026-10-31_2x_final.txt@-1100 --fit
 python3.13 sim/tools/physics_check.py --final
 ```
 
@@ -179,7 +181,7 @@ RL v3 (일렬 3센서, 잔차 정책) vs 규칙기반, CPU core 100월드:
 - **지금까지 맞춘 값**:
   - 실기 루프 ≈ 734 제어/초
   - 회전: 시정수 ≈0.05s, 구동 지연 ≈36ms, w_eff ≈1.5 (블랙박스 5개) → `spike_3s_geo2`
-  - 2배 기어: 제자리 회전이 붙는 속도가 1배와 비슷 → 시정수 ×2 → `spike_3s_geo2x` (실기 2배 회전 1번엔 ×2·×3이 똑같이 맞고, ×2여야 최종판이 실기처럼 완주 — 대략값)
+  - 2배 기어 (2026-10-31): 실기 2배 블랙박스 7.3초의 조향 명령을 재생해 맞춤(`bb_replay.py`) → 구동 지연 ≈40ms, 시정수 ≈0.05s, w_eff ≈3.1 → `spike_3s_geo2x`. 같은 조향에서 회전 속도가 1배 로봇의 97% — 기어를 올려도 회전은 빨라지지 않음(토크 한계). 예전 값(회전 1번에 맞춘 시정수 ×2, w_eff 1.5)은 회전을 1.5~2배 크게 냈음 (실기와 차이 154 vs 62°/s)
 
 ---
 
@@ -190,5 +192,5 @@ RL v3 (일렬 3센서, 잔차 정책) vs 규칙기반, CPU core 100월드:
 - 센서는 반사광만 재현합니다. raw 모드(모드 3)·컬러는 없습니다.
 - 원(작은 루프)은 1배 `photo`에서 실기보다 훨씬 비관적입니다 (원이 실기보다 작음). 원 관련 비교는 `photo@1.3`으로 합니다.
 - 실기에서 라인 하나가 두 센서 사이에 걸치면 둘 다 30~45%로 읽혀 '가짜 직각 신호'가 생겼는데, 시뮬은 이걸 재현하지 못했습니다.
-- `spike_3s_geo2x`의 토크 한계(시정수 ×2)는 실기 2배 회전 1번에 맞춘 대략값입니다. 2초 블랙박스가 더 모이면 다시 맞춥니다.
+- `spike_3s_geo2x`는 회전만 실기로 맞췄습니다. 직진 시정수(0.2초)는 블랙박스에 바퀴 속도가 없어 잴 수 없습니다. `spike_3s_geo2_15x`는 실측이 아직 없습니다.
 - 물리 엔진(MuJoCo)은 검토 후 넣지 않았습니다. 모터는 공개값으로 맞지만, 회전은 엔진도 모르는 바퀴 미끄러짐이 좌우합니다. [`docs/PHYSICS_ENGINE.ko.md`](../docs/PHYSICS_ENGINE.ko.md) 참고.

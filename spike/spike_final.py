@@ -3,9 +3,10 @@ from pybricks.pupdevices import Motor
 from pybricks.iodevices import PUPDevice
 from pybricks.parameters import Direction, Port, Axis, Color
 from pybricks.tools import wait, StopWatch
+from micropython import const
 
 # =============================================================
-#  SPIKE Prime 3센서 라인트레이서 — 최종판 (2026-10-27: 기어 1.5배 기준 상수. GEAR=2 줄이면 E8R10과 같은 동작)
+#  SPIKE Prime 3센서 라인트레이서 — 최종판 (2026-10-27: 기어 1.5배 기준 상수. GEAR=2 줄이면 E8R10과 같은 동작 · 10-31: 고정 숫자를 const로)
 #
 #  사용법
 #   1) spike/spike_value.py를 RAW_MODE = True로 실행해 빛값을 재고, 맨 아래 line_trace(...) 줄의 VALUE에 붙여 넣는다
@@ -33,30 +34,31 @@ YAW_FIXED = True        # True = 허브를 화면이 위로 오게 평평하게 
 #   MAX_STEER_DELTA  한 번에 바꿀 수 있는 조향 크기
 #                KG2  G_CLAMP  CURVE_YAW  STR_YAW  MAX_STEER_DELTA
 GEAR_SET = {1.5: (257, 93, 81, 49, 105),       # 기어 1.5배 (2026-10-27 시뮬 탐색)
-            2: (216, 71, 153, 40, 79)}         # 기어 2배 (E8R10)
+            2: (216, 71, 153, 40, 79)}         # 기어 2배 (E8R10, 10-31 다시 맞춘 2배 모형에서도 가장 좋음)
 KG2, G_CLAMP, CURVE_YAW, STR_YAW, MAX_STEER_DELTA = GEAR_SET[1.5]
-CURVE_TAU_MS = 119      # 회전 평균을 내는 시간 (ms)
-ALPHA = 950             # 센서 값 부드럽게 (×1000, 클수록 새 값 비중↑)
-W_NORM = 81             # 흰색 문턱 (정규화 0~100)
-BLACK_MID = 51          # 검정 문턱
-SIDE_ERR = 60           # 오차가 이보다 크게 기울면 '라인이 그쪽'으로 기억 (놓쳤을 때 돌 방향)
-GAP_MS = 2              # 라인이 안 보여도 이 시간(ms)은 직전 조향 유지
-AHEAD_HOLD_MS = 4       # 가운데 센서가 검정을 본 뒤 이 시간(ms)까지는 '앞에 라인 있음'
-SENSOR_GAP_MM = 23      # 센서 간격 (mm, 실측)
-CF_GAIN = 4             # 가운데 센서만 라인을 볼 때: 가운데가 완전히 하얘지면 이 mm만큼 벗어난 것으로 봄
-SIDE_SEE = 16           # 옆 센서 진하기(100 − 정규화) 합이 이보다 크면 '옆에서 라인 보임'
-DFLOOR = 25             # 진하기에서 빼는 바닥값 (흰 바닥의 작은 떨림을 라인으로 착각하지 않게)
-RA_KQ = 40              # 직각 회전이 RA_YAW를 넘으면 넘은 1°/s당 조향을 0.40씩 줄임 (×100)
-BR_ST = 100             # 직진 중 직각 신호(가운데 + 한쪽 옆이 진한 검정, 반대쪽 흰색)를 보면 미리 꺾는 세기
-BR_DARK = 20            # 직각 신호 판정: 둘 다 이보다 어두워야 함 (정규화 %), 3스텝 연속
-BRK_OUT = -100          # 브레이크 중 바깥 바퀴 파워 (−100 = 양쪽 다 역회전)
-BRK_STR_MS = 300        # 이 시간(ms) 넘게 곧게 달린 뒤의 직각에서만 브레이크
-FORCE_MS = 2            # 센서 값이 안 바뀌어도 이 간격(ms)마다 한 번은 제어
-OFF_STOP_MS = 800       # AUTO_STOP: 세 센서가 모두 흰색으로 이만큼(ms) 지속되면 멈춤
-DARK_STOP_MS = 300      #            모두 검정
-GRAY_STOP_MS = 600      #            모두 회색 (매트 밖)
-LOG_MS = 4              # 블랙박스 기록 간격 (ms)
-LOG_N = 500             # 블랙박스 기록 수 (500 × 4ms = 2초)
+# 아래 숫자들은 const(...): 허브로 보내기 전에 번역할 때 이름 자리에 숫자를 바로 넣어 루프가 빨라짐 (실기 2배 로봇 제어 700 → 758번/초). 바꿀 땐 괄호 안 숫자만
+CURVE_TAU_MS = const(119)   # 회전 평균을 내는 시간 (ms)
+ALPHA = const(950)          # 센서 값 부드럽게 (×1000, 클수록 새 값 비중↑)
+W_NORM = const(81)          # 흰색 문턱 (정규화 0~100)
+BLACK_MID = const(51)       # 검정 문턱
+SIDE_ERR = const(60)        # 오차가 이보다 크게 기울면 '라인이 그쪽'으로 기억 (놓쳤을 때 돌 방향)
+GAP_MS = const(2)           # 라인이 안 보여도 이 시간(ms)은 직전 조향 유지
+AHEAD_HOLD_MS = const(4)    # 가운데 센서가 검정을 본 뒤 이 시간(ms)까지는 '앞에 라인 있음'
+SENSOR_GAP_MM = const(23)   # 센서 간격 (mm, 실측)
+CF_GAIN = const(4)          # 가운데 센서만 라인을 볼 때: 가운데가 완전히 하얘지면 이 mm만큼 벗어난 것으로 봄
+SIDE_SEE = const(16)        # 옆 센서 진하기(100 − 정규화) 합이 이보다 크면 '옆에서 라인 보임'
+DFLOOR = const(25)          # 진하기에서 빼는 바닥값 (흰 바닥의 작은 떨림을 라인으로 착각하지 않게)
+RA_KQ = const(40)           # 직각 회전이 RA_YAW를 넘으면 넘은 1°/s당 조향을 0.40씩 줄임 (×100)
+BR_ST = const(100)          # 직진 중 직각 신호(가운데 + 한쪽 옆이 진한 검정, 반대쪽 흰색)를 보면 미리 꺾는 세기
+BR_DARK = const(20)         # 직각 신호 판정: 둘 다 이보다 어두워야 함 (정규화 %), 3스텝 연속
+BRK_OUT = const(-100)       # 브레이크 중 바깥 바퀴 파워 (−100 = 양쪽 다 역회전)
+BRK_STR_MS = const(300)     # 이 시간(ms) 넘게 곧게 달린 뒤의 직각에서만 브레이크
+FORCE_MS = const(2)         # 센서 값이 안 바뀌어도 이 간격(ms)마다 한 번은 제어
+OFF_STOP_MS = const(800)    # AUTO_STOP: 세 센서가 모두 흰색으로 이만큼(ms) 지속되면 멈춤
+DARK_STOP_MS = const(300)   #            모두 검정
+GRAY_STOP_MS = const(600)   #            모두 회색 (매트 밖)
+LOG_MS = const(4)           # 블랙박스 기록 간격 (ms)
+LOG_N = const(500)          # 블랙박스 기록 수 (500 × 4ms = 2초)
 
 # ============================= 장치 설정 ============================= #
 hub = PrimeHub()

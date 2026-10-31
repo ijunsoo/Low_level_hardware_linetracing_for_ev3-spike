@@ -390,8 +390,8 @@ true rate plus bias.
 | `spike_3s_real` | `spike_3s` | values measured on the real robot: motor curve, 20T→12T gear (1.6667), sensor values, independent sensor clocks, 5 ms sensor lag, 32 ms command lag, call costs for ≈734 loops/s |
 | `spike_3s_geo` | `spike_3s_real` | measured frame: sensors 170 mm ahead and 23 mm apart, 80 mm wheels, 205 mm track, 2 % wheel wobble, judged at the sensors |
 | `spike_3s_geo2` | `spike_3s_geo` | turning fitted to real black-box logs (`yaw_tau_s` 0.05, `w_eff_scale` 1.5). Default SPIKE profile (1× gear) |
-| `spike_3s_geo2x` | `spike_3s_geo2` | 2× gear (`gear_ratio` 3.3333) with motor and turn time constants × 2. Default for the 2× gear |
-| `spike_3s_geo2_15x` | `spike_3s_geo2` | 1.5× gear (`gear_ratio` 2.5); motor and turn time constants 0.142 / 0.071 s, interpolated between the measured 1× and 2× gears with the motor physics (not measured). The competition program's constants are tuned for it |
+| `spike_3s_geo2x` | `spike_3s_geo2` | 2× gear (`gear_ratio` 3.3333). Turning refit on 7.3 s of real 2× black boxes by replaying their steering: `cmd_lag_ms` 40, `yaw_tau_s` 0.05, `w_eff_scale` 3.1. Forward `motor_tau_s` 0.2 (not measurable from the black box). Default for the 2× gear |
+| `spike_3s_geo2_15x` | `spike_3s_geo2` | 1.5× gear (`gear_ratio` 2.5); motor and turn time constants 0.142 / 0.071 s, interpolated with the motor physics between the measured 1× gear and the 2× model before its 2026-10-31 refit (not measured; may overstate turning). The competition program's constants are tuned for it |
 | `spike_3s1_geo`, `spike_3s1f_geo`, `spike_4row_geo` (+ `_geo2`) | `spike_3s_geo` (`_geo2`: + turn fit) | four-sensor experiments: extra sensor D in the middle / 25 mm further ahead / four in a row |
 | `ev3_3s` | `spike_4s` | EV3 brick, 3 colour sensors 90 mm ahead, gyro sensor on S4, two motors per side; many values provisional (`_provisional`) |
 | `ev3_3s_geo` | `spike_3s_geo` | the EV3 robot of this repository: same frame as `spike_3s_geo`, two motors per side, no gyro; call costs provisional |

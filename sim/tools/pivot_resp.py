@@ -3,6 +3,8 @@
 #   python3 pivot_resp.py diag_logs/bb_*.txt                                  (실기 로그만)
 #   python3 pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x --sim spike_3s_geo2:'{"gear_ratio": 3.3333}'
 #   기어만 2배로 바꾼 geo2는 40ms에 +344°/s, 실기 2배는 +144°/s → 토크 한계를 넣은 geo2x(시정수 ×2: +199, 60ms +248 vs 실기 +200)가 실기에 가까움
+#   (2026-10-31: 회전 시작 몇 번이 아니라 2배 로그 7.3초의 조향 명령 전체를 재생해 geo2x를 다시 맞춤 — 지연 40ms · 회전 0.05초 · w_eff 3.1.
+#    위 숫자는 그 전 모형. 재생 맞추기는 docs/PHYSICS_ENGINE.ko.md 6절)
 import argparse
 import contextlib
 import io
@@ -50,8 +52,10 @@ def sim(profile, prof, worlds, track):
     src = src.replace("AUTO_STOP = True", "AUTO_STOP = False")
     for kk, v in {"RAW_MODE": False, "VALUE": [34, 6, 22, 3, 21, 3], "AUTO_CAL": False, "LOG_N": 6000}.items():
         src = EV.setc(src, kk, v)
-    a = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=[1.4, 1.6], wob=[0.005, 0.035])
     base = dict(EV.base_profile(profile, 170), **prof)
+    w = base.get("w_eff_scale", 1.5)                # 미끄러짐은 모형 값 ±7% (geo2 1.5 → 1.4~1.6, geo2x 3.1 → 2.9~3.3)
+    a = dict(noise=[0.3, 2.0], lag=[3, 8], cmdlag=[0, 35], imulag=[0, 20], weff=[w * 1.4 / 1.5, w * 1.6 / 1.5],
+             wob=[0.005, 0.035])
     core.Sim.LOST_MM = 450.0
     ev = []
     for k in range(worlds):

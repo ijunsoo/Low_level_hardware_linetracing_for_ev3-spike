@@ -68,13 +68,13 @@ Choose a profile with `--profile NAME`. To describe your own robot, see [`docs/S
 | Profile | What it is |
 |---|---|
 | `spike_3s_geo2` | **SPIKE, 1× gearing (default).** Measured geometry (3 sensors 23 mm apart, 170 mm ahead of the axle; track width 205 mm; 80 mm wheels) + turn calibration (time constant 0.05 s, w_eff 1.5) |
-| `spike_3s_geo2x` | **SPIKE, 2× gearing.** geo2 + gears doubled + motor/turn time constants ×2 (torque limit) |
-| `spike_3s_geo2_15x` | **SPIKE, 1.5× gearing (recommended, not measured yet).** geo2 + gears ×1.5 (`gear_ratio` 2.5); time constants 0.142 / 0.071 s, interpolated between the measured 1× and 2× with the motor physics. The competition program is tuned for it |
+| `spike_3s_geo2x` | **SPIKE, 2× gearing.** geo2 + gears doubled; turning refit on 7.3 s of real 2× black boxes (delay 40 ms, time constant 0.05 s, w_eff 3.1). For the same steering it turns about as fast as 1× (torque limit) |
+| `spike_3s_geo2_15x` | **SPIKE, 1.5× gearing (recommended, not measured yet).** geo2 + gears ×1.5 (`gear_ratio` 2.5); time constants 0.142 / 0.071 s, interpolated between the measured 1× and the 2× model before its refit. It may overstate turning; check it with black boxes. The competition program is tuned for it |
 | `ev3_3s_geo` | EV3 (sensor ports S1·S3·S2, motors A·B / C·D, no gyro) |
 | `spike_3s_geo`, `spike_3s_real`, `spike_3s`, `ev3_3s`, `spike_4s` (= `robot_params.json`) | Earlier stages these profiles inherit from (older measurements) |
 | `spike_3s1_geo`, `spike_4row_geo`, `spike_3s1f_geo` (+ `_geo2`) | 4-sensor experiments: 3 + D read only / 4 in a row / 3 + one ahead in the middle |
 
-When evaluating with geo2, geo2x or geo2_15x, also pass `--weff 1.4,1.6`.
+When evaluating with geo2 or geo2_15x, also pass `--weff 1.4,1.6`; with geo2x, `--weff 2.9,3.3` (the browser's random worlds draw ±7 % around the profile's own value).
 
 | Track | What it is |
 |---|---|
@@ -121,16 +121,18 @@ A run ends with one of these results:
 | `stop_test.py` | Stop-button test: output after stopping, how long the program holds on, how far the wheels keep rolling |
 | `step_dump.py` | Step-by-step sensors, error, steering and position for one world |
 | `pivot_resp.py` | How fast turning picks up after a pivot: real black box vs simulation |
+| `bb_replay.py` | Replay the steering recorded in a black box through a profile's drive model and compare the turn rate with the real gyro, at every moment. `--fit` searches delay, turning time constant and w_eff |
 | `physics_check.py` | Public SPIKE motor data (Pybricks firmware model) → forward and turning time constants vs the profiles. `--mujoco` MuJoCo robot, `--final` the competition program on a physics-scaled 2× model ([`docs/PHYSICS_ENGINE.md`](../docs/PHYSICS_ENGINE.md)) |
 | `make4.py`, `make_guard.py`, `make_sent.py`, `make_bank.py` | Generate experiment variants (4 sensors, loop guard, front sentinel, curve forced turn) → `tools/variants/` (not in git) |
 
 ```bash
 B='{"RAW_MODE": false, "VALUE": [34, 6, 22, 3, 21, 3], "AUTO_CAL": false}'
 python sim/tools/corner_eval.py '[["85", {"ST_BANK": 85}], ["75", {}]]' --src spike/spike_lf3_rule_e8r10_170.py \
-  --profile spike_3s_geo2x --fwd 170 --weff 1.4,1.6 --base "$B" \
+  --profile spike_3s_geo2x --fwd 170 --weff 2.9,3.3 --base "$B" \
   --tracks rightangle,main,hard,photo@1.3 --lost 450 --worlds 32 --dump bank.json
 python sim/tools/paired.py "bank.json:85" "bank.json:75"
 python sim/tools/pivot_resp.py diag_logs/bb_2026-10-24_E8R_2x_short.txt --sim spike_3s_geo2x
+python sim/tools/bb_replay.py diag_logs/bb_2026-10-31_2x_6s.txt diag_logs/bb_2026-10-31_2x_final.txt@-1100 --fit
 python sim/tools/physics_check.py --final
 ```
 
@@ -196,7 +198,7 @@ RL v3 (3 sensors in a row, residual policy) vs the rule-based program, CPU simul
 - **Fitted so far**:
   - Real control loop ≈ 734 updates/s
   - Turning: time constant ≈ 0.05 s, actuation delay ≈ 36 ms, w_eff ≈ 1.5 (5 black boxes) → `spike_3s_geo2`
-  - 2× gearing: turning picks up about as fast as with 1× → time constants ×2 → `spike_3s_geo2x` (rough: ×2 and ×3 fit the one real 2× pivot equally; ×2 also lets the final program finish like on the real robot)
+  - 2× gearing (2026-10-31): replaying the steering of 7.3 s of real 2× black boxes (`bb_replay.py`) gives delay ≈ 40 ms, time constant ≈ 0.05 s, w_eff ≈ 3.1 → `spike_3s_geo2x`. The turn rate is 97 % of the 1× robot's for the same steering, so the extra gearing does not speed up turning (torque limit). The earlier fit to a single pivot (time constants ×2, w_eff 1.5) turned 1.5–2 times too much (error 154 vs 62 °/s)
 
 ---
 
@@ -207,5 +209,5 @@ RL v3 (3 sensors in a row, residual policy) vs the rule-based program, CPU simul
 - Sensors reproduce reflected light only — no raw mode (mode 3) and no color.
 - Small loops are much more pessimistic on the 1× `photo` track than on the real field (the loop is smaller than the real one). Compare loop behavior on `photo@1.3`.
 - On the robot, a line straddling two sensors made both read 30–45 % and produced a false right-angle signal; the simulator does not reproduce this.
-- The torque limit of `spike_3s_geo2x` (time constants ×2) is a rough fit to one real 2× pivot; it will be refit as more 2 s black boxes come in.
+- `spike_3s_geo2x` is fitted on turning only. Its forward time constant (0.2 s) cannot be measured from the black box, which has no wheel speeds. `spike_3s_geo2_15x` is not measured at all.
 - A physics engine (MuJoCo) was reviewed and not adopted: the motor is publicly characterized and matches, but turning is dominated by tire slip, which no engine knows. See [`docs/PHYSICS_ENGINE.md`](../docs/PHYSICS_ENGINE.md).
